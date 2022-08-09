@@ -1,0 +1,46 @@
+
+
+
+
+# Infos
+
+
+Force git custom merge driver for the purpose of merging pom.xml (maven) files
+https://stackoverflow.com/questions/33412003/force-git-custom-merge-driver-for-the-purpose-of-merging-pom-xml-maven-files
+
+What you want is a custom merge strategy, and you have defined a merge driver.
+A driver is called only on conflicts, while a strategy is used anytime two commits are merged.
+See this answer for how to set up your solution:
+https://stackoverflow.com/a/23140455/6084013
+
+
+git: How do I add a custom merge strategy?
+https://stackoverflow.com/questions/23140240/git-how-do-i-add-a-custom-merge-strategy/23140455#23140455
+A merge strategy is a program that determines how two (or more) commits are merged. By default, git merge uses the "recursive" strategy, found in the program git-merge-recursive. By specifying the --strategy <strategy> flag to git-merge (or git-pull) you tell it to invoke a different strategy. If you want to plug in your own merge strategy, you can, by creating an executable git-merge-mystrategy in your path and running git merge --strategy mystrategy.
+This is different than a merge driver. A merge driver is the mechanism used to resolve a conflict on a file that exists when merging two commits. You plug in your own merge driver in the manner you outlined, by configuring a merge.mydriver.driver setting.
+
+
+
+Replace nth occurrence of substring in string
+https://stackoverflow.com/questions/35091557/replace-nth-occurrence-of-substring-in-string
+
+
+
+
+
+
+
+= Merge scenarios
+
+Given:
+
+- O ancestor
+- A ours
+- B theirs
+
+
+# Doc
+
+If a dependency's version shall be replaced think about a property which is more easy to be replaced.
+
+
