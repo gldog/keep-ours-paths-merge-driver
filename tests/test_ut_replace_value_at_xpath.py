@@ -1,17 +1,15 @@
 import textwrap
 import unittest
-import xml.etree.ElementTree as ET
 
 from base_ut_test import BaseTest
-from xml_paths_merge_driver import is_xpath_ambiguous, replace_value_at_xpath_in_xml_str, \
-    remove_xmlns_from_xml_string
+from xml_paths_merge_driver import replace_value_at_xpath
 
 
 class ReplaceOnlySpecificXPath(BaseTest):
     original_xml_str = textwrap.dedent("""\
     <?xml version="1.0" encoding="UTF-8"?>
     <!--    
-        Thsi pom contains the ORIGINAL_VALUE in multiple XML-path. Imagine it as "1.0.0".
+        This pom contains the ORIGINAL_VALUE in multiple XML-path. Imagine it as "1.0.0".
         The Goal is to control the path to be replaced without changing any other's path version.
     -->
     <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -91,20 +89,13 @@ class ReplaceOnlySpecificXPath(BaseTest):
 
     def test_replace_value_at_xpath_in_xml_str_for_path_project_version(self):
         xpath = './version'
-        original_xml_doc = ET.fromstring(remove_xmlns_from_xml_string(self.original_xml_str))
-
-        # This is just to protect the function unter test.
-        is_absent_or_ambiguous = is_xpath_ambiguous(xpath, original_xml_doc)
-        self.assertFalse(is_absent_or_ambiguous)
-
-        # Function under test.
         new_value = 'NEW_VALUE'
-        modified_xml_str = replace_value_at_xpath_in_xml_str(xpath, new_value, self.original_xml_str)
+        modified_xml_str = replace_value_at_xpath(xpath, new_value, self.original_xml_str)
 
         expected_xml_str = textwrap.dedent("""\
         <?xml version="1.0" encoding="UTF-8"?>
         <!--    
-            Thsi pom contains the ORIGINAL_VALUE in multiple XML-path. Imagine it as "1.0.0".
+            This pom contains the ORIGINAL_VALUE in multiple XML-path. Imagine it as "1.0.0".
             The Goal is to control the path to be replaced without changing any other's path version.
         -->
         <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -190,20 +181,13 @@ class ReplaceOnlySpecificXPath(BaseTest):
 
     def test_replace_value_at_xpath_in_xml_str_for_path_project_parent_version(self):
         xpath = './parent/version'
-        original_xml_doc = ET.fromstring(remove_xmlns_from_xml_string(self.original_xml_str))
-
-        # This is just to protect the function unter test.
-        is_absent_or_ambiguous = is_xpath_ambiguous(xpath, original_xml_doc)
-        self.assertFalse(is_absent_or_ambiguous)
-
-        # Function under test.
         new_value = 'NEW_VALUE'
-        modified_xml_str = replace_value_at_xpath_in_xml_str(xpath, new_value, self.original_xml_str)
+        modified_xml_str = replace_value_at_xpath(xpath, new_value, self.original_xml_str)
 
         expected_xml_str = textwrap.dedent("""\
         <?xml version="1.0" encoding="UTF-8"?>
         <!--    
-            Thsi pom contains the ORIGINAL_VALUE in multiple XML-path. Imagine it as "1.0.0".
+            This pom contains the ORIGINAL_VALUE in multiple XML-path. Imagine it as "1.0.0".
             The Goal is to control the path to be replaced without changing any other's path version.
         -->
         <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -285,20 +269,13 @@ class ReplaceOnlySpecificXPath(BaseTest):
 
     def test_replace_value_at_xpath_in_xml_str_for_path_project_properties_revision(self):
         xpath = './properties/revision'
-        original_xml_doc = ET.fromstring(remove_xmlns_from_xml_string(self.original_xml_str))
-
-        # This is just to protect the function unter test.
-        is_absent_or_ambiguous = is_xpath_ambiguous(xpath, original_xml_doc)
-        self.assertFalse(is_absent_or_ambiguous)
-
-        # Function under test.
         new_value = 'NEW_VALUE'
-        modified_xml_str = replace_value_at_xpath_in_xml_str(xpath, new_value, self.original_xml_str)
+        modified_xml_str = replace_value_at_xpath(xpath, new_value, self.original_xml_str)
 
         expected_xml_str = textwrap.dedent("""\
         <?xml version="1.0" encoding="UTF-8"?>
         <!--    
-            Thsi pom contains the ORIGINAL_VALUE in multiple XML-path. Imagine it as "1.0.0".
+            This pom contains the ORIGINAL_VALUE in multiple XML-path. Imagine it as "1.0.0".
             The Goal is to control the path to be replaced without changing any other's path version.
         -->
         <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -380,20 +357,13 @@ class ReplaceOnlySpecificXPath(BaseTest):
 
     def test_replace_value_at_xpath_in_xml_str_for_path_dependency(self):
         xpath = "./dependencies/dependency[groupId='ch.qos.logback'][artifactId='logback-classic']/version"
-        original_xml_doc = ET.fromstring(remove_xmlns_from_xml_string(self.original_xml_str))
-
-        # This is just to protect the function unter test.
-        is_absent_or_ambiguous = is_xpath_ambiguous(xpath, original_xml_doc)
-        self.assertFalse(is_absent_or_ambiguous)
-
-        # Function under test.
         new_value = 'NEW_VALUE'
-        modified_xml_str = replace_value_at_xpath_in_xml_str(xpath, new_value, self.original_xml_str)
+        modified_xml_str = replace_value_at_xpath(xpath, new_value, self.original_xml_str)
 
         expected_xml_str = textwrap.dedent("""\
         <?xml version="1.0" encoding="UTF-8"?>
         <!--    
-            Thsi pom contains the ORIGINAL_VALUE in multiple XML-path. Imagine it as "1.0.0".
+            This pom contains the ORIGINAL_VALUE in multiple XML-path. Imagine it as "1.0.0".
             The Goal is to control the path to be replaced without changing any other's path version.
         -->
         <project xmlns="http://maven.apache.org/POM/4.0.0"

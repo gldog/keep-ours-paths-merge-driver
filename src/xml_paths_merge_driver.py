@@ -17,8 +17,8 @@ import xml.etree.ElementTree as ET
 #
 # CONFIG
 #
-xpathsToKeepOurs = [
-    './version',
+xpaths_to_keep_ours = [
+    # './version',
     './properties/revision'
 ]
 
@@ -28,8 +28,8 @@ def check_parameters():
     # "The exit value of this program is negative on error, and the number of conflicts otherwise
     # (truncated to 127 if there are more than that many conflicts). If the merge was clean, the
     # exit value is 0."
-    if len(sys.argv) != 4:
-        print("Expect 3 parameters for %O (ancester), %A (ours), %B (theirs), but got {}"
+    if len(sys.argv) < 4:
+        print("Expect at lest 3 parameters for %O (ancester), %A (ours), %B (theirs), but got {}"
               .format(len(sys.argv) - 1))
         sys.exit(-1)
 
@@ -38,11 +38,13 @@ def remove_xmlns_from_xml_string(xml_str):
     return re.sub(' xmlns="[^"]+"', '', xml_str, count=1)
 
 
-def is_xpath_ambiguous(xpath, xml_doc):
+def is_xpath_present(xpath, xml_doc):
+    return True if xml_doc.find(xpath) is not None else False
+
+
+def count_xpath(xpath, xml_doc):
     path_matches = xml_doc.findall(xpath)
-    if len(path_matches) > 1:
-        return True
-    return False
+    return len(path_matches)
 
 
 #   Conflict type       Considered line     Considered line     Action:
@@ -58,7 +60,7 @@ def is_xpath_ambiguous(xpath, xml_doc):
 #       0                   1                   0                   1
 #       0                   1                   1                   1
 #
-# Result: Action = Change in Theirs %B
+# Result: Action if change in Theirs %B
 #
 def shall_fake_their_pom_to_ours_value(path, ancestor_o_doc, theirs_b_doc):
     try:
@@ -83,19 +85,19 @@ def replace_nth(s, old, new, n):
     return first_originals_back
 
 
-def replace_value_at_xpath_in_xml_str(xpath, new_value, original_xml_str: str):
+def replace_value_at_xpath(xpath, value, xml_str: str):
     """
     Find the xpath in the given XML-string and replace the current value with the given new one.
 
-    :param new_value: The new value to be set to the element described in xpath.
+    :param value: The new value to be set to the element described in xpath.
     :param xpath: The XPath. The root-node is the dot ".". E.g. the path to the project's version
                     is "./version", and the path to a property is "./property/revision".
-    :param original_xml_str: Original XML as in the file (still including the namespaces).
+    :param xml_str: Original XML as in the file (still including the namespaces).
     :return: The modified XML.
     """
 
     # print("replace_value_at_xpath_in_xml_str(), new_value: {}, xpath: {}".format(new_value, xpath))
-    original_xml_doc = ET.fromstring(remove_xmlns_from_xml_string(original_xml_str))
+    original_xml_doc = ET.fromstring(remove_xmlns_from_xml_string(xml_str))
 
     # It is already checked that the xpath is present and is not ambiguous.
     current_value = original_xml_doc.find(xpath).text
@@ -105,7 +107,7 @@ def replace_value_at_xpath_in_xml_str(xpath, new_value, original_xml_str: str):
     # and if the xpath is "./properties/revision", the tag is "revision".
     tag = re.sub('.*/', '', xpath)
     current_element = '<' + tag + '>' + current_value + '</' + tag + '>'
-    new_element = '<' + tag + '>' + new_value + '</' + tag + '>'
+    new_element = '<' + tag + '>' + value + '</' + tag + '>'
 
     # In usual cases like the project/version or the project/properties/revision the number of
     # elements to be replaced is 1. But in more exotic use cases like versions of dependencies the
@@ -115,18 +117,60 @@ def replace_value_at_xpath_in_xml_str(xpath, new_value, original_xml_str: str):
     #   - replace the occurences in the XML-string one by one
     #   - and compares each replacement with the expectation
     #   - until the replacement is equal to the expectation.
-    current_element_num = len(original_xml_str.split(current_element)) - 1
-    expected_xml_str_without_namespace = remove_xmlns_from_xml_string(original_xml_str)
+    current_element_num = len(xml_str.split(current_element)) - 1
+    expected_xml_str_without_namespace = remove_xmlns_from_xml_string(xml_str)
     expected_xml_doc = ET.fromstring(expected_xml_str_without_namespace)
-    expected_xml_doc.find(xpath).text = new_value
+    expected_xml_doc.find(xpath).text = value
     expected_xml_formatted_str = ET.tostring(expected_xml_doc)
     for i in range(1, current_element_num + 1):
-        new_xml_str = replace_nth(original_xml_str, current_element, new_element, i)
+        new_xml_str = replace_nth(xml_str, current_element, new_element, i)
         new_xml_str_without_namespace = remove_xmlns_from_xml_string(new_xml_str)
         new_xml_doc_formatted_string = ET.tostring(ET.fromstring(new_xml_str_without_namespace))
         if expected_xml_formatted_str == new_xml_doc_formatted_string:
             return new_xml_str
-    return ''
+
+    # Return an empty string in case the value couln't be replaced.
+    return xml_str
+
+
+def replace_values_at_xpaths_in_theirs(xpaths, ancestor_o_xml_str, ours_a_xml_str, theirs_b_xml_str):
+    ancestor_o_xml_doc = ET.fromstring(remove_xmlns_from_xml_string(ancestor_o_xml_str))
+    ours_a_xml_doc = ET.fromstring(remove_xmlns_from_xml_string(ours_a_xml_str))
+    theirs_b_xml_doc = ET.fromstring(remove_xmlns_from_xml_string(theirs_b_xml_str))
+    errors = []
+    # Remember:
+    # We have to keep/protect the values at the given XPath in Ours by writing those values to
+    # Theirs.
+    for xpath in xpaths:
+        # We have to keep/protect the XPath in Ours only if it is present.
+        if not is_xpath_present(xpath, ours_a_xml_doc):
+            continue
+
+        # We have to keep/protect the XPath in Ours only if it is present in Theirs.
+        if not is_xpath_present(xpath, theirs_b_xml_doc):
+            continue
+
+        error_mesg = "The XML-path '{}' in {} is ambiguous. It is present {} times."
+        xpath_num = count_xpath(xpath, ours_a_xml_doc)
+        if xpath_num > 1:
+            errors.append(error_mesg.format(xpath, 'Ours (%A)', xpath_num))
+        xpath_num = count_xpath(xpath, theirs_b_xml_doc)
+        if xpath_num > 1:
+            errors.append(error_mesg.format(xpath, 'Theirs (%B)', xpath_num))
+        if errors:
+            continue
+
+        if shall_fake_their_pom_to_ours_value(xpath, ancestor_o_xml_doc, theirs_b_xml_doc):
+            value = ours_a_xml_doc.find(xpath).text
+            theirs_b_xml_doc.find(xpath).text = value
+            xml_str = replace_value_at_xpath(xpath, value, theirs_b_xml_str)
+            if xml_str:
+                theirs_b_xml_str = xml_str
+            else:
+                # Should never happen.
+                errors.append("Could not replace value at XML-path '{}' in Theris (%B)".format(xpath))
+
+    return theirs_b_xml_str, errors
 
 
 def is_xml_as_doc_equal_to_xml_as_string(xml_doc, xml_str):
@@ -148,7 +192,6 @@ def is_xml_as_doc_equal_to_xml_as_string(xml_doc, xml_str):
 
 
 if __name__ == '__main__':
-
     print("It's me, the merge-driver!")
 
     check_parameters()
@@ -161,33 +204,31 @@ if __name__ == '__main__':
     #   - str:      The file as string.
     #
 
-    ancestor_o_filename = sys.argv[1]
-    ours_a_filename = sys.argv[2]
-    theirs_b_filename = sys.argv[3]
+    ancestor_o_filename = sys.argv[1]  # %O
+    ours_a_filename = sys.argv[2]  # %A'
+    theirs_b_filename = sys.argv[3]  # %B
+    # %P, Optional
+    path = sys.argv[4] if len(sys.argv) > 4 else ''
+    # Optional, e.g. "./version,./properties/revision"
+    xpaths_to_keep_ours = sys.argv[5].split(',') if len(sys.argv) > 5 else xpaths_to_keep_ours
 
     with open(ancestor_o_filename) as f_o, open(ours_a_filename) as f_a, open(theirs_b_filename) as f_b:
-        ancestor_o_xml_str = remove_xmlns_from_xml_string(f_o.read())
-        ancestor_o_xml_doc = ET.fromstring(ancestor_o_xml_str)
-        ours_a_xml_str = remove_xmlns_from_xml_string(f_a.read())
-        ours_a_xml_doc = ET.fromstring(ours_a_xml_str)
-        theirs_b_xml_str = remove_xmlns_from_xml_string(f_b.read())
-        theirs_b_xml_doc = ET.fromstring(theirs_b_xml_str)
+        ancestor_o_xml_str = f_o.read()
+        ours_a_xml_str = f_a.read()
+        theirs_b_xml_str = f_b.read()
 
-    is_theirs_b_modified = False
-    errors = []
-    for xpath in xpathsToKeepOurs:
-        if is_xpath_ambiguous(xpath, ours_a_xml_doc):
-            errors.append("The XML-path '{}' for Ours (%A) is ambiguous.".format(xpath))
-        if is_xpath_ambiguous(xpath, theirs_b_xml_doc):
-            errors.append("The XML-path '{}' for Theirs (%B) is ambiguous.".format(xpath))
-        if errors:
-            continue
+    #print(f"FILE %O original:\n{ancestor_o_xml_str}")
+    #print(f"FILE %A original:\n{ours_a_xml_str}")
+    #print(f"FILE %B original:\n{theirs_b_xml_str}")
 
-        # if shall_fake_their_pom_to_ours_value(xpath, ancestor_o_doc, theirs_b_doc):
-        value = ours_a_xml_doc.find(xpath).text
-        theirs_b_xml_doc.find(xpath).text = value
-        theirs_b_xml_str = replace_value_at_xpath_in_xml_str(xpath, value, theirs_b_xml_str)
+    theirs_b_xml_str, errors = replace_values_at_xpaths_in_theirs(xpaths_to_keep_ours, ancestor_o_xml_str,
+                                                                  ours_a_xml_str, theirs_b_xml_str)
 
+    # In case of an error, this merge-driver exits with -1. Git doesn't take any more action
+    # on this and keeps Ours file-version in the workspace. Now it is difficult for the user to
+    # proceed on this merge, because the temporary files for Ancestor (%O) and Theirs (%B) are gone.
+    # It is expected the case of ambiguous XPaths should be a rare case or an configuration error.
+    # So for now, no more implementation effort is taken on this.
     if errors:
         print(errors)
         # The exit code is like of 'git merge-file'.
@@ -200,9 +241,16 @@ if __name__ == '__main__':
     with open(theirs_b_filename, mode='w') as f:
         f.write(theirs_b_xml_str)
 
-    cmd = "git merge-file -p -L ours -L base -L theirs " \
-          + ours_a_filename + " " + ancestor_o_filename + " " + theirs_b_filename
-    p = process = subprocess.Popen(shlex.split(cmd))
-    git_merge_res = p.communicate()[0]
+    #print(f"FILE %B modified:\n{theirs_b_xml_str}")
 
-    sys.exit(p.returncode)
+    # TODO --marker-size=<n>
+
+    # From the docs https://git-scm.com/docs/git-merge-file:
+    #   "git merge-file incorporates all changes that lead from the <base-file> to <other-file> into
+    #   <current-file>. The result ordinarily goes into <current-file>.".
+    # Despite ours_a_filename is a temp-file, Git notices the merge-result and will write it to
+    # the regular file in the workspace.
+    cmd = "git merge-file -L ours -L base -L theirs " \
+          + ours_a_filename + " " + ancestor_o_filename + " " + theirs_b_filename
+    returncode = subprocess.call(shlex.split(cmd))
+    sys.exit(returncode)
