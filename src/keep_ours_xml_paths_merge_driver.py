@@ -20,8 +20,8 @@ import xml.etree.ElementTree as ET
 # CONFIG
 #
 
-default_xpaths_to_keep_ours = [
-    #'./version',
+DEFAULT_XPATHS_TO_TAKE_OURS = [
+    './version',
     './properties/revision'
 ]
 
@@ -139,7 +139,8 @@ def replace_value_at_xpath(xpath, value, xml_str: str):
     return xml_str
 
 
-def replace_values_at_xpaths_in_theirs(xpaths, ancestor_o_xml_str, ours_a_xml_str, theirs_b_xml_str):
+def replace_values_at_xpaths_in_theirs(xpaths, ancestor_o_xml_str, ours_a_xml_str,
+                                       theirs_b_xml_str):
     ancestor_o_xml_doc = ET.fromstring(remove_xmlns_from_xml_string(ancestor_o_xml_str))
     ours_a_xml_doc = ET.fromstring(remove_xmlns_from_xml_string(ours_a_xml_str))
     theirs_b_xml_doc = ET.fromstring(remove_xmlns_from_xml_string(theirs_b_xml_str))
@@ -174,7 +175,7 @@ def replace_values_at_xpaths_in_theirs(xpaths, ancestor_o_xml_str, ours_a_xml_st
                 theirs_b_xml_str = xml_str
             else:
                 # Should never happen.
-                errors.append("Could not replace value at XML-path '{}' in Theris (%B)".format(xpath))
+                errors.append(f"Could not replace value at XML-path '{xpath}' in Theirs (%B)")
 
     return theirs_b_xml_str, errors
 
@@ -184,7 +185,7 @@ def is_xml_as_doc_equal_to_xml_as_string(xml_doc, xml_str):
     are equal XML-documents.
 
     :param xml_doc: The XML as a document.
-    :param xml_str: The XML a a string.
+    :param xml_str: The XML as a string.
     :return: True if both XMLs are equal as XML-documents.
     """
     # From the Python 3 docs:
@@ -200,12 +201,14 @@ def is_xml_as_doc_equal_to_xml_as_string(xml_doc, xml_str):
 if __name__ == '__main__':
     print(f"Merge-driver {script_name}: It's me, the merge-driver.")
 
+    # For parameters see also "Defining a custom merge driver"
+    # https://git-scm.com/docs/gitattributes#_defining_a_custom_merge_driver
     check_parameters()
 
     #
-    # In the following we're using those terms for the XML-representations:
+    # In the following we're using the following terms for the XML-representations:
     #   - filename: The filename as it is given by the Merge-Driver parameters %O, %A, %B.
-    #               Note, these filenames are temp-files and aren't named as the original ones.
+    #               These filenames are temp-files and aren't named as the original ones.
     #   - doc:      The file as xml.etree.ElementTree, a "XML-document".
     #   - str:      The file as string.
     #
@@ -213,12 +216,30 @@ if __name__ == '__main__':
     ancestor_o_filename = sys.argv[1]  # %O
     ours_a_filename = sys.argv[2]  # %A'
     theirs_b_filename = sys.argv[3]  # %B
-    # %P, Optional
-    path = sys.argv[4] if len(sys.argv) > 4 else ''
-    # Optional, e.g. "./version,./properties/revision"
-    default_xpaths_to_keep_ours = sys.argv[5].split(',') if len(sys.argv) > 5 else default_xpaths_to_keep_ours
 
-    with open(ancestor_o_filename) as f_o, open(ours_a_filename) as f_a, open(theirs_b_filename) as f_b:
+    # Order of precedence reading XPaths:
+    #   1. Environment variable KOX_MERGE_DRVIER_XPATHS
+    #   2. Script parameter #4
+    #   3. Default
+    #
+    # Setting KOX_MERGE_DRVIER_XPATHS to an empty value effectively disables the merge-driver.
+    xpaths_to_keep_ours_from_environment = os.getenv('KOX_MERGE_DRVIER_XPATHS')
+    split_regex = "\\s*,+\\s*"
+    if xpaths_to_keep_ours_from_environment:
+        xpaths_to_keep_ours = re.split(split_regex, xpaths_to_keep_ours_from_environment.strip())
+        # Delete empty list-entries.
+        xpaths_to_keep_ours = [x for x in xpaths_to_keep_ours if x]
+    elif len(sys.argv) > 4:
+        xpaths_to_keep_ours = re.split(split_regex, sys.argv[4].strip())
+        # Delete empty list-entries.
+        xpaths_to_keep_ours = [x for x in xpaths_to_keep_ours if x]
+    else:
+        xpaths_to_keep_ours = DEFAULT_XPATHS_TO_TAKE_OURS
+
+    print(f"Merge-driver {script_name}: XPaths: {xpaths_to_keep_ours}")
+
+    with open(ancestor_o_filename) \
+            as f_o, open(ours_a_filename) as f_a, open(theirs_b_filename) as f_b:
         ancestor_o_xml_str = f_o.read()
         ours_a_xml_str = f_a.read()
         theirs_b_xml_str = f_b.read()
@@ -227,8 +248,10 @@ if __name__ == '__main__':
     # print(f"FILE %A original:\n{ours_a_xml_str}")
     # print(f"FILE %B original:\n{theirs_b_xml_str}")
 
-    theirs_b_prepared_xml_str, errors = replace_values_at_xpaths_in_theirs(default_xpaths_to_keep_ours, ancestor_o_xml_str,
-                                                                           ours_a_xml_str, theirs_b_xml_str)
+    theirs_b_prepared_xml_str, errors = replace_values_at_xpaths_in_theirs(
+        xpaths_to_keep_ours,
+        ancestor_o_xml_str,
+        ours_a_xml_str, theirs_b_xml_str)
 
     # In case of an error, this merge-driver exits with -1. Git doesn't take any more action
     # on this and keeps Ours file-version in the workspace. Now it is difficult for the user to
