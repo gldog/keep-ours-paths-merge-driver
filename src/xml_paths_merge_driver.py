@@ -1,4 +1,6 @@
 #! /usr/bin/env python3
+
+import os
 import re
 import shlex
 import subprocess
@@ -17,10 +19,13 @@ import xml.etree.ElementTree as ET
 #
 # CONFIG
 #
-xpaths_to_keep_ours = [
-    # './version',
+
+default_xpaths_to_keep_ours = [
+    #'./version',
     './properties/revision'
 ]
+
+script_name = os.path.basename(__file__)
 
 
 def check_parameters():
@@ -29,8 +34,9 @@ def check_parameters():
     # (truncated to 127 if there are more than that many conflicts). If the merge was clean, the
     # exit value is 0."
     if len(sys.argv) < 4:
-        print("Expect at lest 3 parameters for %O (ancester), %A (ours), %B (theirs), but got {}"
-              .format(len(sys.argv) - 1))
+        print(f"Merge-driver {script_name}:" +
+              " Expect at lest 3 parameters for %O (ancestor), %A (ours), %B (theirs)" +
+              f", but got {len(sys.argv) - 1}")
         sys.exit(-1)
 
 
@@ -76,7 +82,7 @@ def replace_nth(s, old, new, n):
     Credits to vineeshvs, see
     https://stackoverflow.com/questions/35091557/replace-nth-occurrence-of-substring-in-string
     """
-    # Replace all originals up to (including) nth occurance and assign it to the variable.
+    # Replace all originals up to (including) nth occurrence and assign it to the variable.
     replaced_until_n = s.replace(old, new, n)
     first_originals_back = s
     for i in range(n):
@@ -96,12 +102,10 @@ def replace_value_at_xpath(xpath, value, xml_str: str):
     :return: The modified XML.
     """
 
-    # print("replace_value_at_xpath_in_xml_str(), new_value: {}, xpath: {}".format(new_value, xpath))
     original_xml_doc = ET.fromstring(remove_xmlns_from_xml_string(xml_str))
 
     # It is already checked that the xpath is present and is not ambiguous.
     current_value = original_xml_doc.find(xpath).text
-    # print("  current_value of xpath: {}".format(current_value))
 
     # Extract the tag name from the xpath. E.g. if the xpath is "./version", the tag is "version",
     # and if the xpath is "./properties/revision", the tag is "revision".
@@ -111,10 +115,10 @@ def replace_value_at_xpath(xpath, value, xml_str: str):
 
     # In usual cases like the project/version or the project/properties/revision the number of
     # elements to be replaced is 1. But in more exotic use cases like versions of dependencies the
-    # element might occure more than once.
+    # element might occur more than once.
     # Because replacing by Regex is difficult, an algorithm
     #   - generates an expected XML as doc
-    #   - replace the occurences in the XML-string one by one
+    #   - replace the occurrences in the XML-string one by one
     #   - and compares each replacement with the expectation
     #   - until the replacement is equal to the expectation.
     current_element_num = len(xml_str.split(current_element)) - 1
@@ -122,6 +126,8 @@ def replace_value_at_xpath(xpath, value, xml_str: str):
     expected_xml_doc = ET.fromstring(expected_xml_str_without_namespace)
     expected_xml_doc.find(xpath).text = value
     expected_xml_formatted_str = ET.tostring(expected_xml_doc)
+    # Replace each occurrence of tag one after the other until the XML-document is equal to the
+    # expected_xml_doc.
     for i in range(1, current_element_num + 1):
         new_xml_str = replace_nth(xml_str, current_element, new_element, i)
         new_xml_str_without_namespace = remove_xmlns_from_xml_string(new_xml_str)
@@ -129,7 +135,7 @@ def replace_value_at_xpath(xpath, value, xml_str: str):
         if expected_xml_formatted_str == new_xml_doc_formatted_string:
             return new_xml_str
 
-    # Return an empty string in case the value couln't be replaced.
+    # Return an empty string in case the value couldn't be replaced.
     return xml_str
 
 
@@ -150,13 +156,13 @@ def replace_values_at_xpaths_in_theirs(xpaths, ancestor_o_xml_str, ours_a_xml_st
         if not is_xpath_present(xpath, theirs_b_xml_doc):
             continue
 
-        error_mesg = "The XML-path '{}' in {} is ambiguous. It is present {} times."
+        error_msg = "The XML-path '{}' in {} is ambiguous. It is present {} times."
         xpath_num = count_xpath(xpath, ours_a_xml_doc)
         if xpath_num > 1:
-            errors.append(error_mesg.format(xpath, 'Ours (%A)', xpath_num))
+            errors.append(error_msg.format(xpath, 'Ours (%A)', xpath_num))
         xpath_num = count_xpath(xpath, theirs_b_xml_doc)
         if xpath_num > 1:
-            errors.append(error_mesg.format(xpath, 'Theirs (%B)', xpath_num))
+            errors.append(error_msg.format(xpath, 'Theirs (%B)', xpath_num))
         if errors:
             continue
 
@@ -192,7 +198,7 @@ def is_xml_as_doc_equal_to_xml_as_string(xml_doc, xml_str):
 
 
 if __name__ == '__main__':
-    print("It's me, the merge-driver!")
+    print(f"Merge-driver {script_name}: It's me, the merge-driver.")
 
     check_parameters()
 
@@ -210,19 +216,19 @@ if __name__ == '__main__':
     # %P, Optional
     path = sys.argv[4] if len(sys.argv) > 4 else ''
     # Optional, e.g. "./version,./properties/revision"
-    xpaths_to_keep_ours = sys.argv[5].split(',') if len(sys.argv) > 5 else xpaths_to_keep_ours
+    default_xpaths_to_keep_ours = sys.argv[5].split(',') if len(sys.argv) > 5 else default_xpaths_to_keep_ours
 
     with open(ancestor_o_filename) as f_o, open(ours_a_filename) as f_a, open(theirs_b_filename) as f_b:
         ancestor_o_xml_str = f_o.read()
         ours_a_xml_str = f_a.read()
         theirs_b_xml_str = f_b.read()
 
-    #print(f"FILE %O original:\n{ancestor_o_xml_str}")
-    #print(f"FILE %A original:\n{ours_a_xml_str}")
-    #print(f"FILE %B original:\n{theirs_b_xml_str}")
+    # print(f"FILE %O original:\n{ancestor_o_xml_str}")
+    # print(f"FILE %A original:\n{ours_a_xml_str}")
+    # print(f"FILE %B original:\n{theirs_b_xml_str}")
 
-    theirs_b_xml_str, errors = replace_values_at_xpaths_in_theirs(xpaths_to_keep_ours, ancestor_o_xml_str,
-                                                                  ours_a_xml_str, theirs_b_xml_str)
+    theirs_b_prepared_xml_str, errors = replace_values_at_xpaths_in_theirs(default_xpaths_to_keep_ours, ancestor_o_xml_str,
+                                                                           ours_a_xml_str, theirs_b_xml_str)
 
     # In case of an error, this merge-driver exits with -1. Git doesn't take any more action
     # on this and keeps Ours file-version in the workspace. Now it is difficult for the user to
@@ -230,7 +236,7 @@ if __name__ == '__main__':
     # It is expected the case of ambiguous XPaths should be a rare case or an configuration error.
     # So for now, no more implementation effort is taken on this.
     if errors:
-        print(errors)
+        print(f"Merge-driver {script_name}: {errors}")
         # The exit code is like of 'git merge-file'.
         # From the doc https://git-scm.com/docs/git-merge-file:
         #   "The exit value of this program is negative on error, and the number of conflicts
@@ -239,9 +245,7 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     with open(theirs_b_filename, mode='w') as f:
-        f.write(theirs_b_xml_str)
-
-    #print(f"FILE %B modified:\n{theirs_b_xml_str}")
+        f.write(theirs_b_prepared_xml_str)
 
     # TODO --marker-size=<n>
 
@@ -253,4 +257,5 @@ if __name__ == '__main__':
     cmd = "git merge-file -L ours -L base -L theirs " \
           + ours_a_filename + " " + ancestor_o_filename + " " + theirs_b_filename
     returncode = subprocess.call(shlex.split(cmd))
+
     sys.exit(returncode)
