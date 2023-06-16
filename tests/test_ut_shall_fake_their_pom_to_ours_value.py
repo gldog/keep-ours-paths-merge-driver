@@ -2,16 +2,16 @@ import re
 import unittest
 import xml.etree.ElementTree as ET
 
-from base_ut_test import BaseTest
+from base_test import BaseTest
 from xml_paths_merge_driver import shall_fake_their_pom_to_ours_value
 
 
-class MyTestCase(BaseTest):
+class ShallFakeTheirPomToOursValue(BaseTest):
 
     def test_shall_fake_their_pom_to_ours_value(self):
         #
-        # The namespaces are removed to allow simple convenient pathes without
-        # namesspaces like './properties/revision'. If the namespace would be part of the XML at the
+        # The namespaces are removed to allow simple convenient paths without
+        # namespaces like './properties/revision'. If the namespace was part of the XML at the
         # time of parsing, each element would be prefixed with a namespace. And that namespace
         # would have to be given in the path.
         #

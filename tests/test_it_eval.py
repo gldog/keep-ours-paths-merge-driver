@@ -10,10 +10,10 @@ class MyTestCase(unittest.TestCase):
     a) Conflicted means a file has to be merged.
     b) Conflicted doesn't mean there are line "hunk" conflicts.
 
-    We use the terms "file-conflicted" for a) and "line-conflicts" for b).
+    We use the terms "file-conflict" for a) and "line-conflict" for b).
 
     The term "merge-driver" means the merge-driver under test.
-    This merge-driver always delegates the final merge to the command "git merge-file".
+    This merge-driver always delegates the final file-merge to the command "git merge-file".
 
 
     Test cases:
@@ -52,21 +52,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_a(self):
         cmd = 'pwd'
-        r = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        # I'm in directory 'tests'.
-        #print(f'PWD: {r.stdout}')
-
-        # rm -rf tmp
-        # mkdir tmp
-        # cp resources/it01/pom.xml tmp
-        # cd tmp
-        # echo "pom.xml merge=custom-merge-driver" > .gitattributes
-        # git init
-        # git config --local merge.custom-merge-strategy.driver "src/xml_paths_merge_driver.py %O %A %B"
-        # git add .
-        # git commit -m Initial
-        # git checkout -b b1
-        # git merge --no-edit --no-ff b1
+        r = subprocess.run(cmd, shell=True)
 
 
 if __name__ == '__main__':
