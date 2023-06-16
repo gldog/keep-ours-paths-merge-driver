@@ -40,7 +40,7 @@ class MyTestCase(unittest.TestCase):
             r = subprocess.run(cmd)
 
             # Install custom-merge-driver. Git-configs are not checked in.
-            merge_driver_path_with_parameters = f'{pathlib.Path(cwd, "..", "src", "xml_paths_merge_driver.py")} %O %A %B'
+            merge_driver_path_with_parameters = f'{pathlib.Path(cwd, "..", "src", "keep_ours_xml_paths_merge_driver.py")} %O %A %B'
             cmd = ['git', 'config', '--local', 'merge.custom-merge-driver.driver', merge_driver_path_with_parameters]
             print(f"$ {cmd}")
             r = subprocess.run(cmd)

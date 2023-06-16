@@ -3,7 +3,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from base_test import BaseTest
-from xml_paths_merge_driver import is_xml_as_doc_equal_to_xml_as_string, remove_xmlns_from_xml_string
+from keep_ours_xml_paths_merge_driver import is_xml_as_doc_equal_to_xml_as_string, remove_xmlns_from_xml_string
 
 
 class TestIsXmlAsDocEqualToXmlAsString(BaseTest):

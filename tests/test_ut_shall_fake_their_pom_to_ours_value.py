@@ -3,7 +3,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from base_test import BaseTest
-from xml_paths_merge_driver import shall_fake_their_pom_to_ours_value
+from keep_ours_xml_paths_merge_driver import shall_fake_their_pom_to_ours_value
 
 
 class ShallFakeTheirPomToOursValue(BaseTest):

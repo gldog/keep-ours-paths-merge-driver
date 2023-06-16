@@ -1,7 +1,7 @@
 import unittest
 
 from base_test import BaseTest
-from xml_paths_merge_driver import replace_nth
+from keep_ours_xml_paths_merge_driver import replace_nth
 
 
 class MyTestCase(BaseTest):
