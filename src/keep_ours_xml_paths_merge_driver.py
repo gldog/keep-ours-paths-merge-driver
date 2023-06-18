@@ -68,7 +68,7 @@ def count_xpath(xpath, xml_doc):
 #
 # Result: Action if change in Theirs %B
 #
-def shall_fake_their_pom_to_ours_value(path, ancestor_o_doc, theirs_b_doc):
+def shall_fake_theirs_xpath_to_ours_value(path, ancestor_o_doc, theirs_b_doc):
     try:
         if ancestor_o_doc.find(path).text != theirs_b_doc.find(path).text:
             return True
@@ -125,6 +125,12 @@ def replace_value_at_xpath(xpath, value, xml_str: str):
     expected_xml_str_without_namespace = remove_xmlns_from_xml_string(xml_str)
     expected_xml_doc = ET.fromstring(expected_xml_str_without_namespace)
     expected_xml_doc.find(xpath).text = value
+
+    # TODO: Anything to be done here regarding ET.toString() ?
+    # From the Python 3 docs:
+    #   encoding="unicode" to generate a Unicode string (otherwise, a bytestring is generated).
+    # But using encoding='unicode' in Python 2.7:
+    #   LookupError: unknown encoding: unicode
     expected_xml_formatted_str = ET.tostring(expected_xml_doc)
     # Replace each occurrence of tag one after the other until the XML-document is equal to the
     # expected_xml_doc.
@@ -149,11 +155,11 @@ def replace_values_at_xpaths_in_theirs(xpaths, ancestor_o_xml_str, ours_a_xml_st
     # We have to keep/protect the values at the given XPath in Ours by writing those values to
     # Theirs.
     for xpath in xpaths:
-        # We have to keep/protect the XPath in Ours only if it is present.
+        # We have to keep/protect the XPath in Ours only if it is present in Ours document.
         if not is_xpath_present(xpath, ours_a_xml_doc):
             continue
 
-        # We have to keep/protect the XPath in Ours only if it is present in Theirs.
+        # We have to keep/protect the XPath in Ours only if it is present in Theirs document.
         if not is_xpath_present(xpath, theirs_b_xml_doc):
             continue
 
@@ -167,7 +173,7 @@ def replace_values_at_xpaths_in_theirs(xpaths, ancestor_o_xml_str, ours_a_xml_st
         if errors:
             continue
 
-        if shall_fake_their_pom_to_ours_value(xpath, ancestor_o_xml_doc, theirs_b_xml_doc):
+        if shall_fake_theirs_xpath_to_ours_value(xpath, ancestor_o_xml_doc, theirs_b_xml_doc):
             value = ours_a_xml_doc.find(xpath).text
             theirs_b_xml_doc.find(xpath).text = value
             xml_str = replace_value_at_xpath(xpath, value, theirs_b_xml_str)

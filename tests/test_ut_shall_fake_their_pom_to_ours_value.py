@@ -3,7 +3,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from base_test import BaseTest
-from keep_ours_xml_paths_merge_driver import shall_fake_their_pom_to_ours_value
+from keep_ours_xml_paths_merge_driver import shall_fake_theirs_xpath_to_ours_value
 
 
 class ShallFakeTheirPomToOursValue(BaseTest):
@@ -31,12 +31,12 @@ class ShallFakeTheirPomToOursValue(BaseTest):
 
         ancestor_o_doc.find(xpath).text = '1.0'
         theirs_b_doc.find(xpath).text = '1.0'
-        shall_fake = shall_fake_their_pom_to_ours_value(xpath, ancestor_o_doc, theirs_b_doc)
+        shall_fake = shall_fake_theirs_xpath_to_ours_value(xpath, ancestor_o_doc, theirs_b_doc)
         self.assertFalse(shall_fake)
 
         ancestor_o_doc.find(xpath).text = '1.0'
         theirs_b_doc.find(xpath).text = '2.0'
-        shall_fake = shall_fake_their_pom_to_ours_value(xpath, ancestor_o_doc, theirs_b_doc)
+        shall_fake = shall_fake_theirs_xpath_to_ours_value(xpath, ancestor_o_doc, theirs_b_doc)
         self.assertTrue(shall_fake)
 
 
