@@ -180,24 +180,6 @@ def replace_values_at_xpaths_in_theirs(xpaths, ancestor_o_xml_str, ours_a_xml_st
     return theirs_b_xml_str, errors
 
 
-def is_xml_as_doc_equal_to_xml_as_string(xml_doc, xml_str):
-    """Control-function, checks if the XML-doc and the XML-string converted to a XML-document
-    are equal XML-documents.
-
-    :param xml_doc: The XML as a document.
-    :param xml_str: The XML as a string.
-    :return: True if both XMLs are equal as XML-documents.
-    """
-    # From the Python 3 docs:
-    #   encoding="unicode" to generate a Unicode string (otherwise, a bytestring is generated).
-    # But using encoding='unicode' in Python 2.7:
-    #   LookupError: unknown encoding: unicode
-    doc_as_formatted_xml_string = ET.tostring(xml_doc)
-    str_as_reformatted_xml_string = ET.tostring(ET.fromstring(xml_str))
-    is_equal = doc_as_formatted_xml_string == str_as_reformatted_xml_string
-    return is_equal
-
-
 if __name__ == '__main__':
     print(f"Merge-driver {script_name}: It's me, the merge-driver.")
 
