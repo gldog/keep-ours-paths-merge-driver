@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 
-class MyTestCase(unittest.TestCase):
+class TestMyTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
         self.cwd = os.getcwd()

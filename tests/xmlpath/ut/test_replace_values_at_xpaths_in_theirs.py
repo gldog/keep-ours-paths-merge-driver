@@ -1,7 +1,7 @@
 import textwrap
 import unittest
 
-from base_test import BaseTest
+from test_base_xml import BaseXmlTest
 from keep_ours_xml_paths_merge_driver import replace_values_at_xpaths_in_theirs
 
 
@@ -18,7 +18,7 @@ from keep_ours_xml_paths_merge_driver import replace_values_at_xpaths_in_theirs
 #
 
 
-class ReplaceValuesAtXPathsInTheirs(BaseTest):
+class TestReplaceValuesAtXPathsInTheirs(BaseXmlTest):
     ancestor_o_xml_str = textwrap.dedent("""\
     <?xml version="1.0" encoding="UTF-8"?>
     <!--    

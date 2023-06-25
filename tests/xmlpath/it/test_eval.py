@@ -2,7 +2,7 @@ import subprocess
 import unittest
 
 
-class MyTestCase(unittest.TestCase):
+class TestMyTestCaseTodo(unittest.TestCase):
     """ Test scenarios.
 
     About the wording "conflicted":

@@ -1,11 +1,11 @@
 import textwrap
 import unittest
 
-from base_test import BaseTest
+from test_base_xml import BaseXmlTest
 from keep_ours_xml_paths_merge_driver import replace_value_at_xpath
 
 
-class ReplaceAtSingleXPaths(BaseTest):
+class TestReplaceAtSingleXPath(BaseXmlTest):
 
     def test_replace_value_at_xpath_project_version(self):
         xpath = './version'
