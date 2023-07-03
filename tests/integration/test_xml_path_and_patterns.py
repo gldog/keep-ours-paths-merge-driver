@@ -11,7 +11,7 @@ class TestXmlPathAndPatterns(TestBase):
         """
         The default for the XML path_and_pattern setting is:
 
-            DEFAULT_PATH_AND_PATTERNS = {
+            DEFAULT_PATHS_AND_PATTERNS = {
                 './version': None,
                 './properties/revision': None,
                 './properties/': '.+\\.version'
@@ -32,15 +32,19 @@ class TestXmlPathAndPatterns(TestBase):
         self.exec_cmd(['git', 'checkout', '-b', 'ours-branch'])
         self.copy_file_to_existing_branch_and_commit('ours-branch', 'pom_01_ours.xml', 'pom.xml')
 
-        paths_and_patterns = None
-        self.install_merge_driver(paths_and_patterns)
+        # None leads to omit the -p option, which leads to the default-paths-setting.
+        self.install_merge_driver(None)
 
         # Don't know why this is conflicted. kdiff3 can merge this.
         self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], expected_exit_code=1)
         self.exec_cmd(['git', 'status'])
         self.assertTrue(filecmp.cmp(pathlib.Path(self.resources_path, 'pom_01_expected_conflicted.xml'), 'pom.xml'))
 
-    def test_no_xpaths(self):
+    def test_xpaths_given_on_command_line_with_empty_list(self):
+        """
+        Setting -p '' effectively deactivates the merge-driver.
+        :return:
+        """
         self.git_init()
 
         self.exec_cmd(['git', 'checkout', self.main_branch_name])
@@ -54,7 +58,7 @@ class TestXmlPathAndPatterns(TestBase):
         self.exec_cmd(['git', 'checkout', '-b', 'ours-branch'])
         self.copy_file_to_existing_branch_and_commit('ours-branch', 'pom_01_ours.xml', 'pom.xml')
 
-        paths_and_patterns = "''"
+        paths_and_patterns = "-p ''"
         self.install_merge_driver(paths_and_patterns)
 
         # Don't know why this is conflicted. kdiff3 can merge this.

@@ -56,7 +56,7 @@ def parse_command_line_arguments():
     return parser
 
 
-def get_paths_with_patterns(from_environment_as_str, from_cl_args_as_list):
+def get_paths_and_patterns(from_environment_as_str, from_cl_args_as_list):
     # None vs. emtpy string '': Allow switching off defaults or values set by command line.
     if from_environment_as_str is not None:
         parts = re.split(PATH_LIST_SEPARATOR, from_environment_as_str)
@@ -65,7 +65,7 @@ def get_paths_with_patterns(from_environment_as_str, from_cl_args_as_list):
         path_and_pattern_list = [path_and_pattern.strip() for path_and_pattern in from_cl_args_as_list if
                                  path_and_pattern.strip()]
     else:
-        path_and_pattern_list = []
+        return None
 
     all_paths_and_patterns = {}
     for path_and_pattern in path_and_pattern_list:

@@ -88,15 +88,15 @@ class TestBase(unittest.TestCase):
             r.check_returncode()
         return r
 
-    def install_merge_driver(self, paths_and_patterns) -> None:
+    def install_merge_driver(self, paths_and_patterns_cl_option) -> None:
         """
         Install custom-merge-driver. Git-configs are not checked in.
 
-        :param paths_and_patterns:
+        :param paths_and_patterns_cl_option: E.g. '-p ./version'
         """
         merge_driver_params = f'-O %O -A %A -B %B'
-        if paths_and_patterns is not None:
-            merge_driver_params += f' -p {paths_and_patterns}'
+        if paths_and_patterns_cl_option:
+            merge_driver_params += f' {paths_and_patterns_cl_option}'
         merge_driver_path_with_parameters = \
             f'{self.PYTHON_BINARY} {self.merge_driver_executable_path} {merge_driver_params}'
         cmd = ['git', 'config', '--local', 'merge.jos-merge-driver.driver', merge_driver_path_with_parameters]

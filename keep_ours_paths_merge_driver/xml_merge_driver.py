@@ -15,11 +15,17 @@ DEFAULT_PATHS_AND_PATTERNS = {
     './properties/': '.+\\.version'
 }
 
-g_path_and_patterns = DEFAULT_PATHS_AND_PATTERNS
+g_paths_and_patterns = DEFAULT_PATHS_AND_PATTERNS
 
 
-def set_path_and_patterns(path_and_patterns):
-    g_path_and_patterns = path_and_patterns
+def set_paths_and_patterns(path_and_patterns):
+    global g_paths_and_patterns
+    if path_and_patterns is not None:
+        g_paths_and_patterns = path_and_patterns
+
+
+def get_paths_and_patterns():
+    return g_paths_and_patterns
 
 
 def remove_xmlns_from_xml_string(xml_str):
@@ -97,7 +103,7 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
 def get_paths_details(xml_doc):
     xml_doc_tree = etree.ElementTree(xml_doc)
     paths_info = {}
-    for xpath, tag_pattern in g_path_and_patterns.items():
+    for xpath, tag_pattern in g_paths_and_patterns.items():
         elements = xml_doc.findall(xpath)
         for element in elements:
             if not tag_pattern or tag_pattern and re.match(tag_pattern, element.tag):

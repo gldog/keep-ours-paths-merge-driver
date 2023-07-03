@@ -34,8 +34,7 @@ class TestXml1XPath(TestBase):
 
         self.print_commit_graph()
 
-        paths_and_patterns = './version'
-        self.install_merge_driver(paths_and_patterns)
+        self.install_merge_driver('-p ./version')
 
         self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'])
         self.exec_cmd(['git', 'status'])
@@ -65,8 +64,7 @@ class TestXml1XPath(TestBase):
 
         self.print_commit_graph()
 
-        paths_and_patterns = './version'
-        self.install_merge_driver(paths_and_patterns)
+        self.install_merge_driver('-p ./version')
 
         self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], expected_exit_code=1)
         self.exec_cmd(['git', 'status'])

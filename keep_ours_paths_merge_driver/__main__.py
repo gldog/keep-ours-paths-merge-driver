@@ -26,6 +26,7 @@ if __name__ == '__main__':
 
     # For parameters see also "Defining a custom merge driver"
     # https://git-scm.com/docs/gitattributes#_defining_a_custom_merge_driver
+    logger.debug(f"sys.argv: {sys.argv}")
     cl_parser = config.parse_command_line_arguments()
 
     #
@@ -56,10 +57,13 @@ if __name__ == '__main__':
     if base_xml_str and ours_xml_str and theirs_xml_str:
         from_environment_as_str = os.getenv('KOP_MERGE_DRVIER_PATHS')
         from_cl_args_as_list = cl_args.pathpatterns if hasattr(cl_args, 'pathpatterns') else None
-        paths_and_patterns = config.get_paths_with_patterns(from_environment_as_str, from_cl_args_as_list)
-        xml_merge_driver.set_path_and_patterns(paths_and_patterns)
+        logger.debug(f"-p: {from_cl_args_as_list}")
+        logger.debug(f"KOP_MERGE_DRVIER_PATHS: {from_environment_as_str}")
+        paths_and_patterns = config.get_paths_and_patterns(from_environment_as_str, from_cl_args_as_list)
+        logger.debug(f"config.get_paths_and_patterns(): {paths_and_patterns}")
+        xml_merge_driver.set_paths_and_patterns(paths_and_patterns)
 
-        logger.info(f"paths and patterns: {paths_and_patterns}")
+        logger.info(f"paths and patterns: {xml_merge_driver.get_paths_and_patterns()}")
 
         prepared_theirs_str = xml_merge_driver.get_prepared_theirs_str(base_xml_str, ours_xml_str, theirs_xml_str)
         logger.debug(f"prepared_theirs_str:\n{prepared_theirs_str}")
