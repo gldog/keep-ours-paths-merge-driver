@@ -1,4 +1,15 @@
 
+# TODO
+
+lxml parser expects the string in the encoding the XML-string itself declares in the first line.
+E.g. the first line might look like:
+
+    <?xml version="1.0" encoding="UTF-8"?>
+
+In that case lxml needs:
+
+
+
 
 
 
@@ -39,8 +50,21 @@ Given:
 - B theirs
 
 
+Both added:
+
+base not:
+
+$ git log --oneline --graph --all
+* 00ce9f3 (master) Add file pom.xml to branch b'master'
+| * 721306d (HEAD -> ours-branch) Add file pom.xml to branch ours-branch
+|/
+| * 2caf7a9 (theirs-branch) Add file pom.xml to branch theirs-branch
+|/
+* 624b611 Add .gitattributes
+
+
+
+
 # Doc
 
 If a dependency's version shall be replaced think about a property which is more easy to be replaced.
-
-

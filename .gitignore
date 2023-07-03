@@ -3,8 +3,6 @@
 # Learn more about .gitignore:
 #     https://www.atlassian.com/git/tutorials/saving-changes/gitignore
 
-# For test-Git-repos.
-tests/tmp/
 
 # Node artifact files
 node_modules/
@@ -15,6 +13,9 @@ dist/
 
 # Compiled Python bytecode
 *.py[cod]
+.pytest_cache
+venv
+evals
 
 # Log files
 *.log
@@ -50,4 +51,3 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
-
