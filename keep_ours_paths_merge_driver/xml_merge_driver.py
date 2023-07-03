@@ -9,13 +9,13 @@ logger = logging.getLogger()
 
 # The format is:
 #   <the-xpath>:<some-tag-regex>
-DEFAULT_PATH_AND_PATTERNS = {
+DEFAULT_PATHS_AND_PATTERNS = {
     './version': None,
     './properties/revision': None,
     './properties/': '.+\\.version'
 }
 
-g_path_and_patterns = DEFAULT_PATH_AND_PATTERNS
+g_path_and_patterns = DEFAULT_PATHS_AND_PATTERNS
 
 
 def set_path_and_patterns(path_and_patterns):
