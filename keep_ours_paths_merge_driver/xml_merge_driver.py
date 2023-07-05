@@ -46,14 +46,21 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
     ours_xml_doc = etree.fromstring(remove_xmlns_from_xml_string(ours_xml_str).encode())
     theirs_xml_doc = etree.fromstring(remove_xmlns_from_xml_string(theirs_xml_str).encode())
 
-    base_paths_details = get_paths_details(base_xml_doc)
-    ours_paths_details = get_paths_details(ours_xml_doc)
-    theirs_paths_details = get_paths_details(theirs_xml_doc)
+    base_paths_details = _get_paths_details(base_xml_doc)
+    ours_paths_details = _get_paths_details(ours_xml_doc)
+    theirs_paths_details = _get_paths_details(theirs_xml_doc)
 
     logger.debug(f"base_paths_details: {base_paths_details}")
     logger.debug(f"ours_paths_details: {ours_paths_details}")
     logger.debug(f"theirs_paths_details: {theirs_paths_details}")
 
+    # Detect conficts.
+    # A conflict is possible if the path exist in all three docs. A conflict is given if all three values of a path
+    # are different.
+    #
+    # Get the paths unique to all three docs (the path might not exist in all docs). Merge-conflicts might only occur
+    # on lines where all three lines differ. We expect the files as strings not restructures, so the XPaths reflect the
+    # position in the files. That means: A XPath in the doc is treated as a line in the file.
     # {} makes a set. * dereferences the list-items.
     uniq_paths = {*base_paths_details.keys(), *ours_paths_details.keys(), *theirs_paths_details.keys()}
     logger.debug(f"uniq_paths: {uniq_paths}")
@@ -61,26 +68,23 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
         base_value = base_paths_details[uniq_path]['value']
         ours_value = ours_paths_details[uniq_path]['value']
         theirs_value = theirs_paths_details[uniq_path]['value']
-        # print(f"uniq uniq_path: {uniq_path}; base_value: {base_value}; ours_value: {ours_value}; theirs_value: {theirs_value}")
-        # Are the 3 values conflicted? They are conflicted if the number of unique values is 3.
+        # Are the 3 values different? They are conflicted if the number of unique values is 3.
         # To get the number of unique values, put them in a set and get the size.
         num_distinct_values = len({base_value, ours_value, theirs_value})
         is_conflict = num_distinct_values == 3
         logger.debug(f"uniq_path: {uniq_path}; num_distinct_values: {num_distinct_values}; is_conflict: {is_conflict}")
 
         if is_conflict:
-            # Ours tag-name and Theirs tag-name are the same.
             tag_name = ours_paths_details[uniq_path]['tag_name']
             theirs_tag_to_search = f'<{tag_name}>{theirs_value}</{tag_name}>'
             ours_tag_replacement = f'<{tag_name}>{ours_value}</{tag_name}>'
 
-            # Set Ours value to Theirs tag. 'theirs_element_reference' keeps a reference to the element in
-            # theirs_xml_doc.
-            theirs_element_reference = theirs_paths_details[uniq_path]['element']
+            # Set Ours value to Theirs. 'theirs_element_reference' keeps a reference to the element in theirs_xml_doc.
+            theirs_element_reference = theirs_paths_details[uniq_path]['element_object']
             theirs_element_reference.text = ours_value
 
             #
-            # check_if_modified_axl_str_is_equal_to_theirs_xml_control_doc():
+            # check_if_modified_xml_str_is_equal_to_theirs_xml_control_doc():
             # We have the control-doc as XML-doc, and the XML to be compared against the control-doc as string.
             # What possibilities of comparisons we have?
             # The LXMLOutputChecker().checker.check_output() needs two strings.
@@ -89,27 +93,28 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
             #
             neutral_formatted_theirs_xml_str = etree.tostring(theirs_xml_doc)
 
-            def check_if_modified_axl_str_is_equal_to_theirs_xml_control_doc(xml_str: str) -> bool:
+            def check_if_modified_xml_str_is_equal_to_theirs_xml_control_doc(xml_str: str) -> bool:
                 neutral_formatted_prepared_xml_str = \
                     etree.tostring(etree.fromstring(remove_xmlns_from_xml_string(xml_str).encode()))
                 return neutral_formatted_theirs_xml_str == neutral_formatted_prepared_xml_str
 
             theirs_xml_str = utils.replace_token(theirs_xml_str, theirs_tag_to_search, ours_tag_replacement,
-                                                 check_if_modified_axl_str_is_equal_to_theirs_xml_control_doc)
+                                                 check_if_modified_xml_str_is_equal_to_theirs_xml_control_doc)
 
     return theirs_xml_str
 
 
-def get_paths_details(xml_doc):
+def _get_paths_details(xml_doc):
     xml_doc_tree = etree.ElementTree(xml_doc)
     paths_info = {}
+    # TODO: Assure elements are unique.
     for xpath, tag_pattern in g_paths_and_patterns.items():
         elements = xml_doc.findall(xpath)
         for element in elements:
-            if not tag_pattern or tag_pattern and re.match(tag_pattern, element.tag):
+            if not tag_pattern or re.match(tag_pattern, element.tag):
                 path = xml_doc_tree.getpath(element)
                 tag_name = element.tag
                 value = element.text
-                path_info = {path: {'tag_name': tag_name, 'value': value, 'element': element}}
+                path_info = {path: {'tag_name': tag_name, 'value': value, 'element_object': element}}
                 paths_info.update(path_info)
     return paths_info
