@@ -8,15 +8,15 @@ class TestXmlMergeDriverGetPreparedTheirsStr(unittest.TestCase):
 
     def test1(self):
         print(f"CWD: {os.getcwd()}")
-        pom_base_path = 'tests/unit/resources/'
-        with open(pom_base_path + 'pom_01_base.xml') as f_base:
+        testfiles_base_path = 'tests/unit/resources/'
+        with open(testfiles_base_path + 'pom_01_base.xml') as f_base:
             base_xml_str = f_base.read()
-        with open(pom_base_path + 'pom_01_ours.xml') as f_ours:
+        with open(testfiles_base_path + 'pom_01_ours.xml') as f_ours:
             ours_xml_str = f_ours.read()
-        with open(pom_base_path + 'pom_01_theirs.xml') as f_theirs:
+        with open(testfiles_base_path + 'pom_01_theirs.xml') as f_theirs:
             theirs_xml_str = f_theirs.read()
 
-        with open(pom_base_path + 'pom_01_theirs_expected_replace_only.xml') as f_expected:
+        with open(testfiles_base_path + 'pom_01_theirs_expected_replace_only_no_merge.xml') as f_expected:
             prepared_theirs_str_expected = f_expected.read()
 
         prepared_theirs_str = xml_merge_driver.get_prepared_theirs_str(base_xml_str, ours_xml_str, theirs_xml_str)
