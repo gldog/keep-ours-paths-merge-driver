@@ -9,11 +9,13 @@ logger = logging.getLogger()
 
 # The format is:
 #   <the-xpath>:<some-tag-regex>
-DEFAULT_PATHS_AND_PATTERNS = {
-    './version': None,
-    './properties/revision': None,
-    './properties/': '.+\\.version'
-}
+DEFAULT_PATHS_AND_PATTERNS = [
+    {'path': './version', 'pattern': None},
+    {'path': './properties/revision', 'pattern': None},
+    {'path': './properties/changelist', 'pattern': None},
+    {'path': './properties/sha1', 'pattern': None},
+    {'path': './properties/', 'pattern': '.+\\.version'}
+]
 
 g_paths_and_patterns = DEFAULT_PATHS_AND_PATTERNS
 
@@ -80,7 +82,7 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
             ours_tag_replacement = f'<{tag_name}>{ours_value}</{tag_name}>'
 
             # Set Ours value to Theirs. 'theirs_element_reference' keeps a reference to the element in theirs_xml_doc.
-            theirs_element_reference = theirs_paths_details[uniq_path]['element_object']
+            theirs_element_reference = theirs_paths_details[uniq_path]['tag_object']
             theirs_element_reference.text = ours_value
 
             #
@@ -107,14 +109,17 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
 def _get_paths_details(xml_doc):
     xml_doc_tree = etree.ElementTree(xml_doc)
     paths_info = {}
-    # TODO: Assure elements are unique.
-    for xpath, tag_pattern in g_paths_and_patterns.items():
-        elements = xml_doc.findall(xpath)
-        for element in elements:
-            if not tag_pattern or re.match(tag_pattern, element.tag):
-                path = xml_doc_tree.getpath(element)
-                tag_name = element.tag
-                value = element.text
-                path_info = {path: {'tag_name': tag_name, 'value': value, 'element_object': element}}
+    # TODO: Assure tags are unique.
+    for path_and_pattern in g_paths_and_patterns:
+        xpath = path_and_pattern['path']
+        tag_pattern = path_and_pattern['pattern']
+        tags = xml_doc.findall(xpath)
+        logger.debug(f"get_paths_details(); xpath: {xpath}; tags len: {len(tags)}")
+        for tag in tags:
+            if not tag_pattern or re.match(tag_pattern, tag.tag):
+                path = xml_doc_tree.getpath(tag)
+                tag_name = tag.tag
+                value = tag.text
+                path_info = {path: {'tag_name': tag_name, 'value': value, 'tag_object': tag}}
                 paths_info.update(path_info)
     return paths_info

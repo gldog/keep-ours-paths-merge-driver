@@ -1,8 +1,8 @@
 import json
 import logging
 import re
-
-import jsonpath_ng as jp
+from functools import reduce
+from operator import getitem
 
 import utils
 
@@ -10,10 +10,10 @@ logger = logging.getLogger()
 
 # The format is:
 #   <the-jsonpath>:<some-regex>
-DEFAULT_PATHS_AND_PATTERNS = {
-    '$.version': None
+DEFAULT_PATHS_AND_PATTERNS = [
+    {'path': '$.version', 'pattern': None}
     # , '$.dependencies.*': TO-DO: Pattern
-}
+]
 
 g_paths_and_patterns = DEFAULT_PATHS_AND_PATTERNS
 
@@ -62,17 +62,18 @@ def get_prepared_theirs_str(base_json_str: str, ours_json_str: str, theirs_json_
         logger.debug(f"uniq_path: {uniq_path}; num_distinct_values: {num_distinct_values}; is_conflict: {is_conflict}")
 
         if is_conflict:
-            tag_name = ours_paths_details[uniq_path]['tag_name']
-
-            # I assume there is always one space between the colon and the value. Otherwise, the theirs-tag won't be
-            # found.
-            # TODO: Rename "tag" to "element" in both json_merge_driver and xml_merge_driver.
-            theirs_tag_to_search = f'"{tag_name}": "{theirs_value}"'
-            ours_tag_replacement = f'"{tag_name}": "{ours_value}"'
+            attribute_name = ours_paths_details[uniq_path]['attribute_name']
+            # I assume there is always one space between the colon and the value. Otherwise, the theirs-attribute
+            # won't be found.
+            theirs_attribute_to_search = f'"{attribute_name}": "{theirs_value}"'
+            ours_attribute_replacement = f'"{attribute_name}": "{ours_value}"'
 
             # Set Ours value to Theirs.
-            jsonpath_expr = jp.parse(uniq_path)
-            jsonpath_expr.update(theirs_json_dict, ours_value)
+            *parts, last = uniq_path.split('.')
+            d_temp = theirs_json_dict
+            for part in parts:
+                d_temp = d_temp.setdefault(part, {})
+            d_temp[last] = ours_value
 
             #
             # check_if_modified_json_str_is_equal_to_theirs_json_control_dict():
@@ -87,7 +88,8 @@ def get_prepared_theirs_str(base_json_str: str, ours_json_str: str, theirs_json_
             def check_if_modified_json_str_is_equal_to_theirs_json_control_dict(json_str: str) -> bool:
                 return neutral_formatted_theirs_xml_str == json.dumps(json.loads(json_str))
 
-            theirs_json_str = utils.replace_token(theirs_json_str, theirs_tag_to_search, ours_tag_replacement,
+            theirs_json_str = utils.replace_token(theirs_json_str, theirs_attribute_to_search,
+                                                  ours_attribute_replacement,
                                                   check_if_modified_json_str_is_equal_to_theirs_json_control_dict)
 
     return theirs_json_str
@@ -95,20 +97,39 @@ def get_prepared_theirs_str(base_json_str: str, ours_json_str: str, theirs_json_
 
 def _get_paths_details(json_dict):
     paths_info = {}
-    # TODO: Assure elements are unique.
-    for jpath, tag_pattern in g_paths_and_patterns.items():
-        jsonpath_expr = jp.parse(jpath)
-        elements = jsonpath_expr.find(json_dict)
-        logger.debug(f"get_paths_details(); elements: len: {len(elements)}")
-        for element in elements:
+    # TODO: Assure objects_or_value are unique.
+    for path_and_pattern in g_paths_and_patterns:
+        jpath = path_and_pattern['path']
+        attribute_pattern = path_and_pattern['pattern']
+        # Clean-up the jpath. If it starts with a dot, without clean-up the resulting list would have an empty first
+        # list-entry. The dollar is JSON-path-specific. To make it compatible with this "small-json-like-parser",
+        # remove the dollar-sign.
+        jpath = re.sub('^[$.]*', '', jpath)
+        # 'objects_or_value' can be a dict, a list, or a str.
+        objects_or_value = reduce(getitem, jpath.split('.'), json_dict)
+        logger.debug(f"get_paths_details(); jpath: {jpath}"
+                     + f"; objects_or_value: type: {type(objects_or_value)}, len: {len(objects_or_value)}")
+        the_type = type(objects_or_value)
+        if isinstance(objects_or_value, str):
+            # 'objects_or_value' is the str-value of jpath. For easy further processing make it a dict.
+            # The attribute_name is the most right part of the dot-separated jpath.
+            attribute_name = jpath.split('.')[-1]
+            value = objects_or_value
+            objects_or_value = {attribute_name: value}
+        # TODO: Handle lists
+        # Now it is an object (in JSON terminology).
+        objects = objects_or_value
+        for attribute_name, value in objects.items():
+            # TODO: Expect value always as type str.
+            logger.debug(f"  attribute_name: {attribute_name}; value: type: {type(value)}, value: {value}")
             # IDEA reports "Unexpected type(s): (None, str)". I assume this is because of the DEFAULT_PATHS_AND_PATTERNS
-            # where all values are None. And the values are here the tag_pattern. But the DEFAULT_PATHS_AND_PATTERNS
+            # where all values are None. And the values are here the attribute_pattern. But the DEFAULT_PATHS_AND_PATTERNS
             # can be overwritten with set_paths_and_patterns().
-            if not tag_pattern or re.match(tag_pattern, str(element.path)):
-                path = element.full_path
-                tag_name = element.path
-                value = element.value
-                # str(path): Without this there is "TypeError: unhashable type: 'Fields'".
-                path_info = {str(path): {'tag_name': tag_name, 'value': value}}
+            if not attribute_pattern:
+                path_info = {jpath: {'attribute_name': attribute_name, 'value': value}}
+                paths_info.update(path_info)
+            elif re.match(attribute_pattern, str(attribute_name)):
+                jpath += '.' + attribute_name
+                path_info = {jpath: {'attribute_name': attribute_name, 'value': value}}
                 paths_info.update(path_info)
     return paths_info
