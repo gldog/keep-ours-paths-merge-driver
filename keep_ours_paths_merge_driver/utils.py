@@ -18,7 +18,6 @@ def replace_nth(s, search_token, replacement_token, position):
 
 def replace_token(s, search_token, replacement_token, compare_to_reference):
     logger.debug(f"replace_token(); search_token: {search_token}; replace_token: {replacement_token}")
-    str_replaced_at_n = ''
     n = 1
     while True:
         # replace_nth() returns an empty string in case there is no searchToken at n.

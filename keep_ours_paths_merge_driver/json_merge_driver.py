@@ -109,7 +109,6 @@ def _get_paths_details(json_dict):
         objects_or_value = reduce(getitem, jpath.split('.'), json_dict)
         logger.debug(f"get_paths_details(); jpath: {jpath}"
                      + f"; objects_or_value: type: {type(objects_or_value)}, len: {len(objects_or_value)}")
-        the_type = type(objects_or_value)
         if isinstance(objects_or_value, str):
             # 'objects_or_value' is the str-value of jpath. For easy further processing make it a dict.
             # The attribute_name is the most right part of the dot-separated jpath.
