@@ -10,11 +10,7 @@ logger = logging.getLogger()
 # The format is:
 #   <the-xpath>:<some-tag-regex>
 DEFAULT_PATHS_AND_PATTERNS = [
-    {'path': './version', 'pattern': None},
-    {'path': './properties/revision', 'pattern': None},
-    {'path': './properties/changelist', 'pattern': None},
-    {'path': './properties/sha1', 'pattern': None},
-    {'path': './properties/', 'pattern': '.+\\.version'}
+    {'path': './version', 'pattern': None}
 ]
 
 g_paths_and_patterns = DEFAULT_PATHS_AND_PATTERNS
