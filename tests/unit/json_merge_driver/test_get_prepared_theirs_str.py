@@ -7,7 +7,6 @@ import keep_ours_paths_merge_driver.json_merge_driver as json_merge_driver
 class TestJsonMergeDriverGetPreparedTheirsStr(unittest.TestCase):
 
     def test_version_only(self):
-        print(f"CWD: {os.getcwd()}")
         testfiles_base_path = 'tests/unit/resources/'
         with open(testfiles_base_path + 'package_01_base.json') as f_base:
             base_json_str = f_base.read()
@@ -23,7 +22,6 @@ class TestJsonMergeDriverGetPreparedTheirsStr(unittest.TestCase):
         self.assertEqual(prepared_theirs_str_expected, prepared_theirs_str)
 
     def test_version_and_1_dependency(self):
-        print(f"CWD: {os.getcwd()}")
         testfiles_base_path = 'tests/unit/resources/'
         with open(testfiles_base_path + 'package_02_base.json') as f_base:
             base_json_str = f_base.read()
@@ -43,7 +41,6 @@ class TestJsonMergeDriverGetPreparedTheirsStr(unittest.TestCase):
         self.assertEqual(prepared_theirs_str_expected, prepared_theirs_str)
 
     def test_version_and_2_dependencies(self):
-        print(f"CWD: {os.getcwd()}")
         testfiles_base_path = 'tests/unit/resources/'
         with open(testfiles_base_path + 'package_03_base.json') as f_base:
             base_json_str = f_base.read()
