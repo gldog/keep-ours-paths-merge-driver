@@ -12,11 +12,10 @@ FILE_TYPES = ['JSON', 'XML']
 PRETTY_PRINT_LOG_LEVELS = ', '.join(LOG_LEVELS)
 
 
-def configure_logger():
+def configure_logger(loglevel):
     logger = logging.getLogger()
     # Set basicConfig() to get levels less than WARNING running in our logger.
     # See https://stackoverflow.com/questions/56799138/python-logger-not-printing-info
-    # logging.basicConfig(level=logging.WARNING)
     logging.basicConfig(level=logging.DEBUG)
     # Set a useful logging-format. Not the most elegant way, but it works.
     logger.handlers[0].setFormatter(
@@ -25,14 +24,14 @@ def configure_logger():
         # logging.Formatter('%(asctime)s:%(levelname)s:%(funcName)s %(message)s'))
         logging.Formatter('%(asctime)s:%(levelname)s:Merge-Driver: %(message)s'))
     # See also https://docs.python.org/3/howto/logging.html:
-    # numeric_level = self.effective_config.get('loglevel')
     # The check for valid values have been done in parser.add_argument().
-    # self.log.setLevel(numeric_level)
+    # setLevel() takes string-names as well as numeric levels.
+    logger.setLevel(loglevel)
 
     return logger
 
 
-def parse_command_line_arguments():
+def init_argument_parser():
     parser = \
         argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                 description="TODO description")
@@ -52,7 +51,7 @@ def parse_command_line_arguments():
     parser.add_argument('-t', '--filetype', choices=FILE_TYPES, default='XML',
                         help=f"The file type to merge: {FILE_TYPES}")
     parser.add_argument('--version', action='version', version=f'%(prog)s {__version__}')
-    parser.add_argument('-l', '--loglevel', choices=LOG_LEVELS,
+    parser.add_argument('-l', '--loglevel', choices=LOG_LEVELS, default=DEFAULT_LOGLEVEL,
                         help=f"Log-level: {LOG_LEVELS}. Defaults to {DEFAULT_LOGLEVEL}.")
 
     return parser

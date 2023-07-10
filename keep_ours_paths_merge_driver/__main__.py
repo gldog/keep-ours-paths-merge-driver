@@ -21,14 +21,17 @@ import xml_merge_driver
 script_name = 'keep_ours_paths_merge_driver'
 
 if __name__ == '__main__':
-    config.configure_logger()
-    logger = logging.getLogger()
-    logger.info(script_name)
 
     # For parameters see also "Defining a custom merge driver"
     # https://git-scm.com/docs/gitattributes#_defining_a_custom_merge_driver
+    cl_parser = config.init_argument_parser()
+
+    cl_args = cl_parser.parse_args()
+
+    config.configure_logger(cl_args.loglevel)
+    logger = logging.getLogger()
+    logger.info(script_name)
     logger.debug(f"sys.argv: {sys.argv}")
-    cl_parser = config.parse_command_line_arguments()
 
     #
     # In the following we're using the following terms for the XML-representations:
@@ -39,12 +42,9 @@ if __name__ == '__main__':
     #   - str:      The file as string.
     #
 
-    cl_args = cl_parser.parse_args()
     base_filepath = cl_args.base  # %O
     ours_filepath = cl_args.ours  # %A'
     theirs_filepath = cl_args.theirs  # %B
-
-    # logger.info(f'base_filepath {base_filepath}, ours_filepath {ours_filepath}, theirs_filepath {theirs_filepath}')
 
     with open(base_filepath) \
             as f_o, open(ours_filepath) as f_a, open(theirs_filepath) as f_b:
