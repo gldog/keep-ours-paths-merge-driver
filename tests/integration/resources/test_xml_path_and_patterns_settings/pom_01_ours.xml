@@ -10,28 +10,18 @@
     <groupId>com.dummy</groupId>
     <artifactId>java-web-project</artifactId>
     <packaging>war</packaging>
-<<<<<<< ours
     <version>NEW_VALUE_ON_OURS</version>
-=======
-    <version>NEW_VALUE_ON_THEIRS</version>
->>>>>>> theirs
     <name>java-web-project Maven Webapp</name>
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-<<<<<<< ours
-        <revision>NEW_VALUE_ON_OURS</revision>
-        <spring.version>NEW_VALUE_ON_OURS</spring.version>
-        <tag-a.version>NEW_VALUE_ON_OURS</tag-a.version>
-        <tag-b.version>ORIGINAL_VALUE</tag-b.version>
-=======
-        <revision>NEW_VALUE_ON_THEIRS</revision>
+        <revision>ORIGINAL_VALUE</revision>
         <spring.version>ORIGINAL_VALUE</spring.version>
-        <tag-a.version>NEW_VALUE_ON_THEIRS</tag-a.version>
-        <tag-b.version>NEW_VALUE_ON_THEIRS</tag-b.version>
->>>>>>> theirs
+        <some-app1.version>ORIGINAL_VALUE</some-app1.version>
+        <some-app2.version>ORIGINAL_VALUE</some-app2.version>
+        <some-app3.version>ORIGINAL_VALUE</some-app3.version>
         <jetty.maven.plugin-version>ORIGINAL_VALUE</jetty.maven.plugin-version>
     </properties>
     <dependencies>

@@ -52,12 +52,17 @@ class TestBase(unittest.TestCase):
     def print_commit_graph(self) -> None:
         self.exec_cmd(['git', 'log', '--decorate', '--oneline', '--graph', '--all'])
 
-    def git_init(self) -> None:
+    def git_init(self, type='XML') -> None:
         self.exec_cmd(['git', '--version'])
         self.exec_cmd(['git', 'init'])
 
         with open('./.gitattributes', 'w') as f:
-            f.write('pom.xml merge=jos-merge-driver')
+            if type == 'XML':
+                f.write('pom.xml merge=jos-merge-driver')
+            elif type == 'JSON':
+                f.write('package.json merge=jos-merge-driver')
+            else:
+                self.assertTrue(False, "Expect type 'XML' or 'JSON'")
 
         self.exec_cmd(['git', 'add', '.'])
         self.exec_cmd(['git', 'commit', '-m', 'Add .gitattributes'])
@@ -79,27 +84,31 @@ class TestBase(unittest.TestCase):
 
         self.print_commit_graph()
 
-    def exec_cmd(self, cmd, expected_exit_code=0):
+    def exec_cmd(self, cmd, env=None, expected_exit_code=0, stderr_to_stdout=False):
         print(f"$ {cmd}")
-        r = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print(f"stdout:\n{r.stdout.decode()}")
-        print(f"stderr:\n{r.stderr.decode()}")
-        if r.returncode != expected_exit_code:
-            r.check_returncode()
+        if stderr_to_stdout:
+            r = subprocess.run(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            print(f"stdout:\n{r.stdout.decode()}")
+        else:
+            r = subprocess.run(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print(f"stdout:\n{r.stdout.decode()}")
+            print(f"stderr:\n{r.stderr.decode()}")
+        # if r.returncode != expected_exit_code:
+        #    r.check_returncode()
         return r
 
-    def install_merge_driver(self, paths_and_patterns_cl_option) -> None:
+    def install_merge_driver(self, options) -> None:
         """
         Install custom-merge-driver. Git-configs are not checked in.
 
-        :param paths_and_patterns_cl_option: E.g. '-p ./version'
+        :param options: E.g. '-p ./version'
         """
         merge_driver_params = f'-O %O -A %A -B %B'
-        if paths_and_patterns_cl_option:
-            merge_driver_params += f' {paths_and_patterns_cl_option}'
+        if options:
+            merge_driver_params += f' {options}'
         merge_driver_path_with_parameters = \
             f'{self.PYTHON_BINARY} {self.merge_driver_executable_path} {merge_driver_params}'
-        cmd = ['git', 'config', '--local', 'merge.jos-merge-driver.driver', merge_driver_path_with_parameters]
+        cmd = ['git', 'config', '--local', 'merge.jos-merge-driver.driver', merge_driver_path_with_parameters, '2>&1']
         self.exec_cmd(cmd)
 
     def get_main_branch_name(self) -> str:

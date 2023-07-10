@@ -19,8 +19,9 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <revision>ORIGINAL_VALUE</revision>
         <spring.version>ORIGINAL_VALUE</spring.version>
-        <tag-a.version>ORIGINAL_VALUE</tag-a.version>
-        <tag-b.version>ORIGINAL_VALUE</tag-b.version>
+        <some-app1.version>ORIGINAL_VALUE</some-app1.version>
+        <some-app2.version>ORIGINAL_VALUE</some-app2.version>
+        <some-app3.version>ORIGINAL_VALUE</some-app3.version>
         <jetty.maven.plugin-version>ORIGINAL_VALUE</jetty.maven.plugin-version>
     </properties>
     <dependencies>

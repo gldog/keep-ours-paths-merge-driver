@@ -11,7 +11,7 @@ logger = logging.getLogger()
 # The format is:
 #   <the-jsonpath>:<some-regex>
 DEFAULT_PATHS_AND_PATTERNS = [
-    {'path': '$.version', 'pattern': None}
+    {'path': 'version', 'pattern': None}
 ]
 
 g_paths_and_patterns = DEFAULT_PATHS_AND_PATTERNS

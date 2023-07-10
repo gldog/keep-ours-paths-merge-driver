@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 import config
+import json_merge_driver
 import xml_merge_driver
 
 #
@@ -47,26 +48,37 @@ if __name__ == '__main__':
 
     with open(base_filepath) \
             as f_o, open(ours_filepath) as f_a, open(theirs_filepath) as f_b:
-        base_xml_str = f_o.read()
-        ours_xml_str = f_a.read()
-        theirs_xml_str = f_b.read()
+        base_file_str = f_o.read()
+        ours_file_str = f_a.read()
+        theirs_file_str = f_b.read()
 
-    # The merge-driver makes only sense it all three files have content.
+    # The merge-driver makes only sense if all three files have content.
     # If the file has been added to ours-branch and theirs-branch, but was not present before in base, the base-file
     # is empty.
-    if base_xml_str and ours_xml_str and theirs_xml_str:
-        from_environment_as_str = os.getenv('KOP_MERGE_DRVIER_PATHS')
-        from_cl_args_as_list = cl_args.pathpatterns if hasattr(cl_args, 'pathpatterns') else None
-        logger.debug(f"-p: {from_cl_args_as_list}")
-        logger.debug(f"KOP_MERGE_DRVIER_PATHS: {from_environment_as_str}")
-        paths_and_patterns = config.get_paths_and_patterns(from_environment_as_str, from_cl_args_as_list)
+    if base_file_str and ours_file_str and theirs_file_str:
+        paths_from_cl_args_as_list = getattr(cl_args, 'pathspatterns', None)
+        paths_from_environment_as_str = os.getenv('KOP_MERGE_DRVIER_PATHSPATTERNS')
+        logger.debug(f"-p: {paths_from_cl_args_as_list}")
+        logger.debug(f"KOP_MERGE_DRVIER_PATHSPATTERNS: {paths_from_environment_as_str}")
+        # Get path_and_patterns merged from command-line parameter and environment variable.
+        paths_and_patterns = config.get_paths_and_patterns(paths_from_environment_as_str, paths_from_cl_args_as_list)
         logger.debug(f"config.get_paths_and_patterns(): {paths_and_patterns}")
-        xml_merge_driver.set_paths_and_patterns(paths_and_patterns)
+        logger.info("paths_and_patterns-config is empty."
+                    + " Nothing has been set in command-line-parameter -p"
+                    + " nor in environment-variable KOP_MERGE_DRVIER_PATHSPATTERNS."
+                    + " The merge-driver is deactivated.")
 
-        logger.info(f"paths and patterns: {xml_merge_driver.get_paths_and_patterns()}")
+        # This is the tiny merge-driver-factory.
+        if cl_args.filetype == 'XML':
+            merge_driver = xml_merge_driver
+        else:
+            # The choices are limited to 'XML' and 'JSON'. So there is no need to check any alternative to 'XML'
+            # If not 'XML' it is 'JSON'. 'XML' is the default.
+            merge_driver = json_merge_driver
 
-        prepared_theirs_str = xml_merge_driver.get_prepared_theirs_str(base_xml_str, ours_xml_str, theirs_xml_str)
-        logger.debug(f"prepared_theirs_str:\n{prepared_theirs_str}")
+        merge_driver.set_paths_and_patterns(paths_and_patterns)
+        logger.info(f"paths and patterns: {merge_driver.get_paths_and_patterns()}")
+        prepared_theirs_str = merge_driver.get_prepared_theirs_str(base_file_str, ours_file_str, theirs_file_str)
 
         with open(theirs_filepath, mode='w') as f:
             f.write(prepared_theirs_str)
@@ -76,7 +88,6 @@ if __name__ == '__main__':
     #   <current-file>. The result ordinarily goes into <current-file>.".
     # Despite ours_a_filename is a temp-file, Git notices the merge-result and will write it to
     # the regular file in the workspace.
-    cmd = "git merge-file -L ours -L base -L theirs " \
-          + ours_filepath + " " + base_filepath + " " + theirs_filepath
+    cmd = "git merge-file -L ours -L base -L theirs " + ours_filepath + " " + base_filepath + " " + theirs_filepath
     returncode = subprocess.call(shlex.split(cmd))
     sys.exit(returncode)

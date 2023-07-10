@@ -6,37 +6,40 @@ import keep_ours_paths_merge_driver.config as config
 class TestConfigGetPAthWithPatterns(unittest.TestCase):
 
     def test_get_paths_with_patterns(self):
+        expected = [{'path': 'path-from-env1', 'pattern': 'pattern-from-env1'}]
         from_environment_as_str = 'path-from-env1:pattern-from-env1'
         from_cl_args_as_list = None
         got = config.get_paths_and_patterns(from_environment_as_str, from_cl_args_as_list)
-        expected = [{'path': 'path-from-env1', 'pattern': 'pattern-from-env1'}]
         self.assertEqual(expected, got)
 
+        expected = [
+            {'path': 'path-from-env1', 'pattern': 'pattern-from-env1'},
+            {'path': 'path-from-env2', 'pattern': 'pattern-from-env2'}
+        ]
+        from_environment_as_str = 'path-from-env1:pattern-from-env1 path-from-env2:pattern-from-env2'
+        from_cl_args_as_list = None
+        got = config.get_paths_and_patterns(from_environment_as_str, from_cl_args_as_list)
+        self.assertEqual(expected, got)
         from_environment_as_str = 'path-from-env1:pattern-from-env1,path-from-env2:pattern-from-env2'
         from_cl_args_as_list = None
         got = config.get_paths_and_patterns(from_environment_as_str, from_cl_args_as_list)
-        expected = [
-            {'path': 'path-from-env1', 'pattern': 'pattern-from-env1'},
-            {'path': 'path-from-env2', 'pattern': 'pattern-from-env2'}
-        ]
         self.assertEqual(expected, got)
-
-        from_environment_as_str = ',path-from-env1:pattern-from-env1,,path-from-env2:pattern-from-env2,'
+        from_environment_as_str = 'path-from-env1:pattern-from-env1;path-from-env2:pattern-from-env2'
         from_cl_args_as_list = None
         got = config.get_paths_and_patterns(from_environment_as_str, from_cl_args_as_list)
-        expected = [
-            {'path': 'path-from-env1', 'pattern': 'pattern-from-env1'},
-            {'path': 'path-from-env2', 'pattern': 'pattern-from-env2'}
-        ]
         self.assertEqual(expected, got)
 
-        from_environment_as_str = ' path-from-env1:pattern-from-env1 , path-from-env2:pattern-from-env2 '
-        from_cl_args_as_list = None
-        got = config.get_paths_and_patterns(from_environment_as_str, from_cl_args_as_list)
         expected = [
             {'path': 'path-from-env1', 'pattern': 'pattern-from-env1'},
             {'path': 'path-from-env2', 'pattern': 'pattern-from-env2'}
         ]
+        from_environment_as_str = ',path-from-env1:pattern-from-env1  path-from-env2:pattern-from-env2,'
+        from_cl_args_as_list = None
+        got = config.get_paths_and_patterns(from_environment_as_str, from_cl_args_as_list)
+        self.assertEqual(expected, got)
+        from_environment_as_str = ' , path-from-env1:pattern-from-env1 ; path-from-env2:pattern-from-env2 ; , '
+        from_cl_args_as_list = None
+        got = config.get_paths_and_patterns(from_environment_as_str, from_cl_args_as_list)
         self.assertEqual(expected, got)
 
         # Switch defaults off by environment variable.

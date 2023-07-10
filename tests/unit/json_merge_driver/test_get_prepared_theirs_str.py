@@ -1,4 +1,3 @@
-import os
 import unittest
 
 import keep_ours_paths_merge_driver.json_merge_driver as json_merge_driver
