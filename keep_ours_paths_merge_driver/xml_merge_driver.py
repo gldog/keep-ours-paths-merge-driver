@@ -52,33 +52,39 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
     logger.debug(f"ours_paths_details: {ours_paths_details}")
     logger.debug(f"theirs_paths_details: {theirs_paths_details}")
 
-    # Detect conficts.
-    # A conflict is possible if the path exist in all three docs. A conflict is given if all three values of a path
-    # are different.
     #
-    # Get the paths unique to all three docs (the path might not exist in all docs). Merge-conflicts might only occur
-    # on lines where all three lines differ. We expect the files as strings not restructures, so the XPaths reflect the
-    # position in the files. That means: A XPath in the doc is treated as a line in the file.
+    # Detect conflicts.
+    #
+    # There are two types of conflicts:
+    #   - A value conflict in an XML-document. This is the case, if a path is given in all three documents, and all
+    #       values are different.
+    #   - A line/hunk conflict in a file (represented as string). This is the case, if the line/hunk in all three
+    #       files are different.
+    #
+    # Regarding the merge-driver it is assumed the file is not restructured, so an XPath represents a line in a file.
+    #
     # {} makes a set. * dereferences the list-items.
-    uniq_paths = {*base_paths_details.keys(), *ours_paths_details.keys(), *theirs_paths_details.keys()}
-    logger.debug(f"uniq_paths: {uniq_paths}")
-    for uniq_path in uniq_paths:
-        base_value = base_paths_details[uniq_path]['value']
-        ours_value = ours_paths_details[uniq_path]['value']
-        theirs_value = theirs_paths_details[uniq_path]['value']
+    #
+    common_paths = {*base_paths_details.keys(), *ours_paths_details.keys(), *theirs_paths_details.keys()}
+    logger.debug(f"common_paths: {common_paths}")
+    for common_path in common_paths:
+        base_value = base_paths_details[common_path]['value']
+        ours_value = ours_paths_details[common_path]['value']
+        theirs_value = theirs_paths_details[common_path]['value']
         # Are the 3 values different? They are conflicted if the number of unique values is 3.
         # To get the number of unique values, put them in a set and get the size.
         num_distinct_values = len({base_value, ours_value, theirs_value})
         is_conflict = num_distinct_values == 3
-        logger.debug(f"uniq_path: {uniq_path}; num_distinct_values: {num_distinct_values}; is_conflict: {is_conflict}")
+        logger.debug(
+            f"common_path: {common_path}; num_distinct_values: {num_distinct_values}; is_conflict: {is_conflict}")
 
         if is_conflict:
-            tag_name = ours_paths_details[uniq_path]['tag_name']
+            tag_name = ours_paths_details[common_path]['tag_name']
             theirs_tag_to_search = f'<{tag_name}>{theirs_value}</{tag_name}>'
             ours_tag_replacement = f'<{tag_name}>{ours_value}</{tag_name}>'
 
             # Set Ours value to Theirs. 'theirs_element_reference' keeps a reference to the element in theirs_xml_doc.
-            theirs_element_reference = theirs_paths_details[uniq_path]['tag_object']
+            theirs_element_reference = theirs_paths_details[common_path]['tag_object']
             theirs_element_reference.text = ours_value
 
             #
@@ -110,7 +116,7 @@ def _get_paths_details(xml_doc):
         xpath = path_and_pattern['path']
         tag_pattern = path_and_pattern['pattern']
         tags = xml_doc.findall(xpath)
-        logger.debug(f"get_paths_details(); xpath: {xpath}; tags len: {len(tags)}")
+        logger.debug(f"_get_paths_details(); xpath: {xpath}; tags len: {len(tags)}")
         for tag in tags:
             if not tag_pattern or re.match(tag_pattern, tag.tag):
                 path = xml_doc_tree.getpath(tag)
