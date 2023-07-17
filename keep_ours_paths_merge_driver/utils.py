@@ -17,7 +17,6 @@ def replace_nth(s, search_token, replacement_token, position):
 
 
 def replace_token(s, search_token, replacement_token, compare_to_reference):
-    logger.debug(f"replace_token(); search_token: {search_token}; replace_token: {replacement_token}")
     n = 1
     while True:
         # replace_nth() returns an empty string in case there is no searchToken at n.
@@ -27,7 +26,6 @@ def replace_token(s, search_token, replacement_token, compare_to_reference):
 
         # if !str_replaced_at_n.isEmpty() & & compareToReferencePredicate.test(str_replaced_at_n)) {
         is_equal = compare_to_reference(str_replaced_at_n)
-        logger.debug(f"  is_equal: {is_equal}")
         if is_equal:
             s = str_replaced_at_n
             break
