@@ -4,7 +4,7 @@ import re
 from functools import reduce
 from operator import getitem
 
-import utils
+from keep_ours_paths_merge_driver import utils
 
 logger = logging.getLogger()
 

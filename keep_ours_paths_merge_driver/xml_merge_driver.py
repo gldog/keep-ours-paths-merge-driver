@@ -3,7 +3,7 @@ import re
 
 from lxml import etree
 
-import utils
+from keep_ours_paths_merge_driver import utils
 
 logger = logging.getLogger()
 

@@ -6,9 +6,9 @@ import shlex
 import subprocess
 import sys
 
-import config
-import json_merge_driver
-import xml_merge_driver
+from keep_ours_paths_merge_driver import config
+from keep_ours_paths_merge_driver import json_merge_driver
+from keep_ours_paths_merge_driver import xml_merge_driver
 
 #
 # Uses xml.etree.ElementTree not to rely on additional libraries.
@@ -20,8 +20,8 @@ import xml_merge_driver
 
 script_name = 'keep_ours_paths_merge_driver'
 
-if __name__ == '__main__':
 
+def main():
     # For parameters see also "Defining a custom merge driver"
     # https://git-scm.com/docs/gitattributes#_defining_a_custom_merge_driver
     cl_parser = config.init_argument_parser()
@@ -32,6 +32,7 @@ if __name__ == '__main__':
     logger = logging.getLogger()
     logger.info(script_name)
     logger.debug(f"sys.argv: {sys.argv}")
+    logger.debug(f"args: {cl_args}")
 
     #
     # In the following we're using the following terms for the XML-representations:
@@ -46,8 +47,7 @@ if __name__ == '__main__':
     ours_filepath = cl_args.ours  # %A'
     theirs_filepath = cl_args.theirs  # %B
 
-    with open(base_filepath) \
-            as f_o, open(ours_filepath) as f_a, open(theirs_filepath) as f_b:
+    with open(base_filepath) as f_o, open(ours_filepath) as f_a, open(theirs_filepath) as f_b:
         base_file_str = f_o.read()
         ours_file_str = f_a.read()
         theirs_file_str = f_b.read()
@@ -63,10 +63,11 @@ if __name__ == '__main__':
         # Get path_and_patterns merged from command-line parameter and environment variable.
         paths_and_patterns = config.get_paths_and_patterns(paths_from_environment_as_str, paths_from_cl_args_as_list)
         logger.debug(f"config.get_paths_and_patterns(): {paths_and_patterns}")
-        logger.info("paths_and_patterns-config is empty."
-                    + " Nothing has been set in command-line-parameter -p"
-                    + " nor in environment-variable KOP_MERGE_DRVIER_PATHSPATTERNS."
-                    + " The merge-driver is deactivated.")
+        if not paths_and_patterns:
+            logger.info("paths_and_patterns-config is empty."
+                        + " Nothing has been set in command-line-parameter -p"
+                        + " nor in environment-variable KOP_MERGE_DRVIER_PATHSPATTERNS."
+                        + " The merge-driver did no merge-preparation.")
 
         # This is the tiny merge-driver-factory.
         if cl_args.filetype == 'XML':
@@ -80,8 +81,12 @@ if __name__ == '__main__':
         logger.info(f"paths and patterns: {merge_driver.get_paths_and_patterns()}")
         prepared_theirs_str = merge_driver.get_prepared_theirs_str(base_file_str, ours_file_str, theirs_file_str)
 
-        with open(theirs_filepath, mode='w') as f:
-            f.write(prepared_theirs_str)
+        if cl_args.stdout:
+            print(prepared_theirs_str)
+            sys.exit(1)
+        else:
+            with open(theirs_filepath, mode='w') as f:
+                f.write(prepared_theirs_str)
 
     # From the docs https://git-scm.com/docs/git-merge-file:
     #   "git merge-file incorporates all changes that lead from the <base-file> to <other-file> into
@@ -91,3 +96,7 @@ if __name__ == '__main__':
     cmd = "git merge-file -L ours -L base -L theirs " + ours_filepath + " " + base_filepath + " " + theirs_filepath
     returncode = subprocess.call(shlex.split(cmd))
     sys.exit(returncode)
+
+
+if __name__ == '__main__':
+    main()
