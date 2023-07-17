@@ -3,6 +3,7 @@
 # Learn more about .gitignore:
 #     https://www.atlassian.com/git/tutorials/saving-changes/gitignore
 
+keep_ours_paths_merge_driver.pyz
 
 # Node artifact files
 node_modules/
