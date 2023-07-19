@@ -32,8 +32,11 @@ def get_prepared_theirs_str(base_json_str: str, ours_json_str: str, theirs_json_
     ours_json_dict = json.loads(ours_json_str)
     theirs_json_dict = json.loads(theirs_json_str)
 
+    logger.debug("Getting details for base_json_dict")
     base_paths_details = _get_paths_details(base_json_dict)
+    logger.debug("Getting details for ours_json_dict")
     ours_paths_details = _get_paths_details(ours_json_dict)
+    logger.debug("Getting details for theirs_json_dict")
     theirs_paths_details = _get_paths_details(theirs_json_dict)
 
     logger.debug(f"base_paths_details: {base_paths_details}")
@@ -73,13 +76,15 @@ def get_prepared_theirs_str(base_json_str: str, ours_json_str: str, theirs_json_
             # won't be found.
             theirs_attribute_to_search = f'"{attribute_name}": "{theirs_value}"'
             ours_attribute_replacement = f'"{attribute_name}": "{ours_value}"'
+            logger.debug(f"theirs_attribute_to_search: {theirs_attribute_to_search}"
+                         + f"; ours_attribute_replacement: {ours_attribute_replacement}")
 
             # Set Ours value to Theirs.
             *parts, last = common_path.split('.')
-            d_temp = theirs_json_dict
+            dict_temp = theirs_json_dict
             for part in parts:
-                d_temp = d_temp.setdefault(part, {})
-            d_temp[last] = ours_value
+                dict_temp = dict_temp.setdefault(part, {})
+            dict_temp[last] = ours_value
 
             #
             # check_if_modified_json_str_is_equal_to_theirs_json_control_dict():

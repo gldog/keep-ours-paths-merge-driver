@@ -44,8 +44,11 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
     ours_xml_doc = etree.fromstring(remove_xmlns_from_xml_string(ours_xml_str).encode())
     theirs_xml_doc = etree.fromstring(remove_xmlns_from_xml_string(theirs_xml_str).encode())
 
+    logger.debug("Getting details for base_xml_doc")
     base_paths_details = _get_paths_details(base_xml_doc)
+    logger.debug("Getting details for ours_xml_doc")
     ours_paths_details = _get_paths_details(ours_xml_doc)
+    logger.debug("Getting details for theirs_xml_doc")
     theirs_paths_details = _get_paths_details(theirs_xml_doc)
 
     logger.debug(f"base_paths_details: {base_paths_details}")
@@ -82,6 +85,7 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
             tag_name = ours_paths_details[common_path]['tag_name']
             theirs_tag_to_search = f'<{tag_name}>{theirs_value}</{tag_name}>'
             ours_tag_replacement = f'<{tag_name}>{ours_value}</{tag_name}>'
+            logger.debug(f"theirs_tag_to_search: {theirs_tag_to_search}; ours_tag_replacement: {ours_tag_replacement}")
 
             # Set Ours value to Theirs. 'theirs_element_reference' keeps a reference to the element in theirs_xml_doc.
             theirs_element_reference = theirs_paths_details[common_path]['tag_object']
