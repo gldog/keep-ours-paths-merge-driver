@@ -134,7 +134,7 @@ def _get_paths_details(json_dict):
                 path_info = {jpath: {'attribute_name': attribute_name, 'value': value}}
                 paths_info.update(path_info)
             elif re.match(attribute_pattern, str(attribute_name)):
-                jpath += '.' + attribute_name
-                path_info = {jpath: {'attribute_name': attribute_name, 'value': value}}
+                # jpath += '.' + attribute_name
+                path_info = {f'{jpath}.{attribute_name}': {'attribute_name': attribute_name, 'value': value}}
                 paths_info.update(path_info)
     return paths_info
