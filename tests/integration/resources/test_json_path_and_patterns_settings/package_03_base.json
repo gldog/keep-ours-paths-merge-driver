@@ -11,6 +11,7 @@
     "@angular/router": "~11.2.14",
     "@mycompany/some-app1": "ORIGINAL_VALUE",
     "@mycompany/some-app2": "ORIGINAL_VALUE",
+
     "@mycompany/some-app3": "ORIGINAL_VALUE",
     "@ng-idle/core": "~10.0.0-beta.1",
     "zone.js": "~0.10.3"
