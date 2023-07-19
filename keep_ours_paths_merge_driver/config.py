@@ -46,8 +46,7 @@ def init_argument_parser():
     parser.add_argument('-p', '--pathspatterns', nargs='+', metavar='PATH:PATTERN',
                         help=f"Paths as regex-patterns to keep ours, separated by {PATHS_TO_PATTERN_SEPARATOR}.")
     parser.add_argument('-o', '--stdout', action='store_true', default=False,
-                        help="Print the prepared file to stdout rather than to -A/--ours." +
-                             " Can be used for evaluating merge scenarios and for testing.")
+                        help="Print the prepared file to stdout.")
     parser.add_argument('-t', '--filetype', choices=FILE_TYPES, default='XML',
                         help=f"The file type to merge: {FILE_TYPES}")
     parser.add_argument('--version', action='version', version=f'%(prog)s {__version__}')

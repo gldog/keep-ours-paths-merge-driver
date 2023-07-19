@@ -10,14 +10,6 @@ from keep_ours_paths_merge_driver import config
 from keep_ours_paths_merge_driver import json_merge_driver
 from keep_ours_paths_merge_driver import xml_merge_driver
 
-#
-# Uses xml.etree.ElementTree not to rely on additional libraries.
-# The implementations in 2.7 and 3.x versions behave differently.
-# Python 2.7: https://docs.python.org/2.7/library/xml.etree.elementtree.html
-#
-# TODO More description
-#
-
 script_name = 'keep_ours_paths_merge_driver'
 
 
@@ -83,10 +75,9 @@ def main():
 
         if cl_args.stdout:
             print(prepared_theirs_str)
-            sys.exit(1)
-        else:
-            with open(theirs_filepath, mode='w') as f:
-                f.write(prepared_theirs_str)
+
+        with open(theirs_filepath, mode='w') as f:
+            f.write(prepared_theirs_str)
 
     # From the docs https://git-scm.com/docs/git-merge-file:
     #   "git merge-file incorporates all changes that lead from the <base-file> to <other-file> into
