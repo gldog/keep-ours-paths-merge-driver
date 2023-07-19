@@ -35,7 +35,7 @@ class TestJsonMergeDriverGetPreparedTheirsStr(unittest.TestCase):
         # The single leading dot in '.mycompany.+' is the placeholder for the '@'.
         json_merge_driver.set_paths_and_patterns([
             {'path': '$.version', 'pattern': None},
-            {'path': '$.dependencies', 'pattern': '.mycompany.+'}])
+            {'path': '$.dependencies', 'pattern': '@mycompany/.+'}])
         prepared_theirs_str = json_merge_driver.get_prepared_theirs_str(base_json_str, ours_json_str, theirs_json_str)
         self.assertEqual(prepared_theirs_str_expected, prepared_theirs_str)
 

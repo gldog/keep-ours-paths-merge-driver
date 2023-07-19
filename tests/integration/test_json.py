@@ -1,4 +1,5 @@
 import filecmp
+import os
 import pathlib
 import unittest
 
@@ -31,7 +32,9 @@ class TestJson1JPath(TestBase):
         # No -p option leads to the default-paths-setting.
         self.install_merge_driver('-t JSON')
 
-        self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'])
+        env = os.environ.copy()
+        env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
+        self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], env=env)
         self.exec_cmd(['git', 'status'])
         self.assertTrue(
             filecmp.cmp(pathlib.Path(self.resources_path, 'package_01_expected_merged.json'), 'package.json'))
@@ -59,7 +62,9 @@ class TestJson1JPath(TestBase):
 
         self.install_merge_driver('-t JSON -p version')
 
-        self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], expected_exit_code=1)
+        env = os.environ.copy()
+        env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
+        self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], expected_exit_code=1, env=env)
         self.exec_cmd(['git', 'status'])
         self.assertTrue(
             filecmp.cmp(pathlib.Path(self.resources_path, 'package_01_expected_conflicted.json'), 'package.json'))

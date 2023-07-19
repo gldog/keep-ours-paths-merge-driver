@@ -1,3 +1,4 @@
+import filecmp
 import os
 import pathlib
 import unittest
@@ -13,7 +14,6 @@ class TestJsonPathAndPatternsSettings(TestBase):
         self.exec_cmd(['git', 'checkout', self.main_branch_name])
         self.copy_file_to_existing_branch_and_commit(self.main_branch_name, 'package_03_base.json', 'package.json')
 
-        self.exec_cmd(['git', 'checkout', self.main_branch_name])
         self.exec_cmd(['git', 'checkout', '-b', 'theirs-branch'])
         self.copy_file_to_existing_branch_and_commit('theirs-branch', 'package_03_theirs.json', 'package.json')
 
@@ -21,16 +21,19 @@ class TestJsonPathAndPatternsSettings(TestBase):
         self.exec_cmd(['git', 'checkout', '-b', 'ours-branch'])
         self.copy_file_to_existing_branch_and_commit('ours-branch', 'package_03_ours.json', 'package.json')
 
-        self.install_merge_driver('-t JSON -p version dependencies:@mycompany/.+')
+        self.install_merge_driver('-t JSON -p version dependencies:@mycompany/.+ -l DEBUG')
 
-        self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'])
+        env = os.environ.copy()
+        env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
+        self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], env=env)
         self.exec_cmd(['git', 'status'])
-        self.assertEqual(
-            open(pathlib.Path(self.resources_path, 'package_03_expected_merged.json')).read(),
-            open('package.json').read())
-        # self.assertTrue(filecmp.cmp(pathlib.Path(self.resources_path, 'pom_01_expected_conflicted.xml'), 'pom.xml'))
+        # self.assertEqual(
+        #    open(pathlib.Path(self.resources_path, 'package_03_expected_merged.json')).read(),
+        #    open('package.json').read())
+        self.assertTrue(
+            filecmp.cmp(pathlib.Path(self.resources_path, 'package_03_expected_merged.json'), 'package.json'))
 
-    def test_fpaths_given_in_env_variable(self):
+    def test_jpaths_given_in_env_variable(self):
         self.git_init(type='JSON')
 
         self.exec_cmd(['git', 'checkout', self.main_branch_name])
@@ -44,16 +47,18 @@ class TestJsonPathAndPatternsSettings(TestBase):
         self.exec_cmd(['git', 'checkout', '-b', 'ours-branch'])
         self.copy_file_to_existing_branch_and_commit('ours-branch', 'package_03_ours.json', 'package.json')
 
-        self.install_merge_driver(None)
+        self.install_merge_driver('-t JSON -l DEBUG')
 
         env = os.environ.copy()
         env['KOP_MERGE_DRVIER_PATHSPATTERNS'] = 'version dependencies:@mycompany/.+'
+        env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
         self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], env=env)
         self.exec_cmd(['git', 'status'])
-        self.assertEqual(
-            open(pathlib.Path(self.resources_path, 'package_03_expected_merged.json')).read(),
-            open('package.json').read())
-        # self.assertTrue(filecmp.cmp(pathlib.Path(self.resources_path, 'pom_01_expected_conflicted.xml'), 'pom.xml'))
+        # self.assertEqual(
+        #    open(pathlib.Path(self.resources_path, 'package_03_expected_merged.json')).read(),
+        #    open('package.json').read())
+        self.assertTrue(
+            filecmp.cmp(pathlib.Path(self.resources_path, 'package_03_expected_merged.json'), 'package.json'))
 
     def test_jpaths_empty_list_from_env_variable_disables_merge_driver(self):
         """
@@ -76,12 +81,14 @@ class TestJsonPathAndPatternsSettings(TestBase):
 
         env = os.environ.copy()
         env['KOP_MERGE_DRVIER_PATHSPATTERNS'] = ''
+        env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
         self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], expected_exit_code=1, env=env)
         self.exec_cmd(['git', 'status'])
-        self.assertEqual(
-            open(pathlib.Path(self.resources_path, 'package_01_expected_conflicted.json')).read(),
-            open('package.json').read())
-        # self.assertTrue(filecmp.cmp(pathlib.Path(self.resources_path, 'pom_01_expected_conflicted.xml'), 'pom.xml'))
+        # self.assertEqual(
+        #    open(pathlib.Path(self.resources_path, 'package_01_expected_conflicted.json')).read(),
+        #    open('package.json').read())
+        self.assertTrue(
+            filecmp.cmp(pathlib.Path(self.resources_path, 'package_01_expected_conflicted.json'), 'package.json'))
 
 
 if __name__ == '__main__':

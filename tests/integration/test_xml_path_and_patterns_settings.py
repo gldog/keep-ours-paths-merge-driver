@@ -1,3 +1,4 @@
+import filecmp
 import os
 import pathlib
 import unittest
@@ -23,11 +24,14 @@ class TestXmlPathAndPatternsSettings(TestBase):
 
         self.install_merge_driver('-p ./version ./properties/:.+\\\\.version')
 
-        self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'])
+        env = os.environ.copy()
+        env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
+        self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], env=env)
+
         self.exec_cmd(['git', 'status'])
-        self.assertEqual(
-            open(pathlib.Path(self.resources_path, 'pom_03_expected_merged.xml')).read(), open('pom.xml').read())
-        # self.assertTrue(filecmp.cmp(pathlib.Path(self.resources_path, 'pom_01_expected_conflicted.xml'), 'pom.xml'))
+        # self.assertEqual(
+        #    open(pathlib.Path(self.resources_path, 'pom_03_expected_merged.xml')).read(), open('pom.xml').read())
+        self.assertTrue(filecmp.cmp(pathlib.Path(self.resources_path, 'pom_03_expected_merged.xml'), 'pom.xml'))
 
     def test_xpaths_given_in_env_variable(self):
         self.git_init()
@@ -48,11 +52,13 @@ class TestXmlPathAndPatternsSettings(TestBase):
 
         env = os.environ.copy()
         env['KOP_MERGE_DRVIER_PATHSPATTERNS'] = './version ./properties/:.+\\.version'
+        env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
         self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], env=env)
+
         self.exec_cmd(['git', 'status'])
-        self.assertEqual(
-            open(pathlib.Path(self.resources_path, 'pom_03_expected_merged.xml')).read(), open('pom.xml').read())
-        # self.assertTrue(filecmp.cmp(pathlib.Path(self.resources_path, 'pom_01_expected_conflicted.xml'), 'pom.xml'))
+        # self.assertEqual(
+        #    open(pathlib.Path(self.resources_path, 'pom_03_expected_merged.xml')).read(), open('pom.xml').read())
+        self.assertTrue(filecmp.cmp(pathlib.Path(self.resources_path, 'pom_03_expected_merged.xml'), 'pom.xml'))
 
     def test_xpaths_empty_list_from_env_variable_disables_merge_driver(self):
         """
@@ -75,11 +81,13 @@ class TestXmlPathAndPatternsSettings(TestBase):
 
         env = os.environ.copy()
         env['KOP_MERGE_DRVIER_PATHSPATTERNS'] = ''
+        env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
         self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], expected_exit_code=1, env=env)
+
         self.exec_cmd(['git', 'status'])
-        self.assertEqual(
-            open(pathlib.Path(self.resources_path, 'pom_01_expected_conflicted.xml')).read(), open('pom.xml').read())
-        # self.assertTrue(filecmp.cmp(pathlib.Path(self.resources_path, 'pom_01_expected_conflicted.xml'), 'pom.xml'))
+        # self.assertEqual(
+        #    open(pathlib.Path(self.resources_path, 'pom_01_expected_conflicted.xml')).read(), open('pom.xml').read())
+        self.assertTrue(filecmp.cmp(pathlib.Path(self.resources_path, 'pom_01_expected_conflicted.xml'), 'pom.xml'))
 
 
 if __name__ == '__main__':

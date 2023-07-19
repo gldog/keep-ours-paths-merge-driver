@@ -4,7 +4,6 @@ import shutil
 import subprocess
 import time
 import unittest
-import zipapp
 
 
 class TestBase(unittest.TestCase):
@@ -33,18 +32,18 @@ class TestBase(unittest.TestCase):
         # There is the relation of 1 test-module to 1 subdirectory in resources.
         self.resources_path = pathlib.Path(self.abs_project_root_path, 'tests', 'integration', 'resources',
                                            self.module_name)
-        self.temp_test_dir_path = pathlib.Path(self.abs_project_root_path, 'target',
+        self.abs_temp_test_dir_path = pathlib.Path(self.abs_project_root_path, 'target',
                                                f'{time.time()}-{self.current_test_name}')
-        self.gitrepo_path = pathlib.Path(self.temp_test_dir_path, 'testrepo')
+        self.gitrepo_path = pathlib.Path(self.abs_temp_test_dir_path, 'testrepo')
         os.makedirs(self.gitrepo_path)
 
         os.chdir(self.gitrepo_path)
 
-        self.merge_driver_executable_path = pathlib.Path(self.abs_project_root_path, self.temp_test_dir_path,
+        self.merge_driver_executable_path = pathlib.Path(self.abs_project_root_path, self.abs_temp_test_dir_path,
                                                          self.APP_SOURCE_DIRNAME + '.pyz')
 
         # Create a pyz and place it into the 'target' directory.
-        self.create_pyz()
+        self.create_zipapp()
 
     def tearDown(self) -> None:
         os.chdir(self.abs_project_root_path)
@@ -58,9 +57,9 @@ class TestBase(unittest.TestCase):
 
         with open('./.gitattributes', 'w') as f:
             if type == 'XML':
-                f.write('pom.xml merge=jos-merge-driver')
+                f.write('pom.xml merge=my-merge-driver')
             elif type == 'JSON':
-                f.write('package.json merge=jos-merge-driver')
+                f.write('package.json merge=my-merge-driver')
             else:
                 self.assertTrue(False, "Expect type 'XML' or 'JSON'")
 
@@ -69,20 +68,6 @@ class TestBase(unittest.TestCase):
         self.exec_cmd(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
         # The main branch does exist after the first commit.
         self.main_branch_name = self.get_main_branch_name()
-
-    def prepare_3_branches__OLD(self):
-        self.exec_cmd(['git', 'checkout', self.main_branch_name])
-        self.copy_file_to_existing_branch_and_commit(self.main_branch_name, 'pom_01_base.xml', 'pom.xml')
-
-        self.exec_cmd(['git', 'checkout', self.main_branch_name])
-        self.exec_cmd(['git', 'checkout', '-b', 'theirs-branch'])
-        self.copy_file_to_existing_branch_and_commit('theirs-branch', 'pom_01_theirs.xml', 'pom.xml')
-
-        self.exec_cmd(['git', 'checkout', self.main_branch_name])
-        self.exec_cmd(['git', 'checkout', '-b', 'ours-branch'])
-        self.copy_file_to_existing_branch_and_commit('ours-branch', 'pom_01_ours.xml', 'pom.xml')
-
-        self.print_commit_graph()
 
     def exec_cmd(self, cmd, env=None, expected_exit_code=0, stderr_to_stdout=False):
         print(f"$ {cmd}")
@@ -93,8 +78,8 @@ class TestBase(unittest.TestCase):
             r = subprocess.run(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print(f"stdout:\n{r.stdout.decode()}")
             print(f"stderr:\n{r.stderr.decode()}")
-        # if r.returncode != expected_exit_code:
-        #    r.check_returncode()
+        if r.returncode != expected_exit_code:
+            r.check_returncode()
         return r
 
     def install_merge_driver(self, options) -> None:
@@ -108,7 +93,7 @@ class TestBase(unittest.TestCase):
             merge_driver_params += f' {options}'
         merge_driver_path_with_parameters = \
             f'{self.PYTHON_BINARY} {self.merge_driver_executable_path} {merge_driver_params}'
-        cmd = ['git', 'config', '--local', 'merge.jos-merge-driver.driver', merge_driver_path_with_parameters, '2>&1']
+        cmd = ['git', 'config', '--local', 'merge.my-merge-driver.driver', merge_driver_path_with_parameters, '2>&1']
         self.exec_cmd(cmd)
 
     def get_main_branch_name(self) -> str:
@@ -135,19 +120,9 @@ class TestBase(unittest.TestCase):
         self.exec_cmd(['git', 'commit', '-m', f'Add file {dst_file_name} to branch {branch_name}'])
         self.exec_cmd(['git', 'status'])
 
-    def create_pyz(self) -> None:
-        """
-        Make the PYZ-file.
-        All files in the project-dir are included.
+    def create_zipapp(self) -> None:
+        self.exec_cmd(['shiv', '-c', self.APP_SOURCE_DIRNAME, '-o', self.merge_driver_executable_path,
+                       self.abs_project_root_path])
 
-        Prepare:
-
-            # Collect dependency-information.
-            $ pip3 freeze > requirements.txt
-            # Add dependencies to the project-dir.
-            $ python -m pip install -r requirements.txt --target  keep_ours_paths_merge_driver
-        """
-        # self.assertTrue(False, f"{os.getcwd()}")
-        # self.assertTrue(False, f"{os.listdir(self.APP_SOURCE_DIRNAME)}")
-        zipapp.create_archive(source=f'{self.abs_project_root_path}/{self.APP_SOURCE_DIRNAME}',
-                              target=self.merge_driver_executable_path)
+        # zipapp.create_archive(source=f'{self.abs_project_root_path}/{self.APP_SOURCE_DIRNAME}',
+        #                      target=self.merge_driver_executable_path)
