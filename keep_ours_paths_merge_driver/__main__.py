@@ -39,7 +39,7 @@ def main():
     ours_filepath = cl_args.ours  # %A'
     theirs_filepath = cl_args.theirs  # %B
 
-    with open(base_filepath) as f_o, open(ours_filepath) as f_a, open(theirs_filepath) as f_b:
+    with open(base_filepath) as f_o, open(ours_filepath) as f_a, open(theirs_filepath, newline='') as f_b:
         base_file_str = f_o.read()
         ours_file_str = f_a.read()
         theirs_file_str = f_b.read()
@@ -76,7 +76,7 @@ def main():
         if cl_args.stdout:
             print(prepared_theirs_str)
 
-        with open(theirs_filepath, mode='w') as f:
+        with open(theirs_filepath, mode='w', newline='') as f:
             f.write(prepared_theirs_str)
 
     # From the docs https://git-scm.com/docs/git-merge-file:
