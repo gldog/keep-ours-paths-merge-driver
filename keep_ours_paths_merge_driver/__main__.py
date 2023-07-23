@@ -52,7 +52,8 @@ def main():
         paths_from_environment_as_str = os.getenv('KOP_MERGE_DRVIER_PATHSPATTERNS')
         logger.debug(f"-p: {paths_from_cl_args_as_list}")
         logger.debug(f"KOP_MERGE_DRVIER_PATHSPATTERNS: {paths_from_environment_as_str}")
-        # Get path_and_patterns merged from command-line parameter and environment variable.
+        # Get path_and_patterns either from environment variable or command-line parameter. Environment variable takes
+        # precedence.
         paths_and_patterns = config.get_paths_and_patterns(paths_from_environment_as_str, paths_from_cl_args_as_list)
         logger.debug(f"config.get_paths_and_patterns(): {paths_and_patterns}")
         if not paths_and_patterns:
@@ -62,11 +63,11 @@ def main():
                         + " The merge-driver did no merge-preparation.")
 
         # This is the tiny merge-driver-factory.
+        # The choices are limited to 'XML' and 'JSON'. So there is no need to check any alternative to 'XML'
+        # If not 'XML' it is 'JSON'. 'XML' is the default.
         if cl_args.filetype == 'XML':
             merge_driver = xml_merge_driver
         else:
-            # The choices are limited to 'XML' and 'JSON'. So there is no need to check any alternative to 'XML'
-            # If not 'XML' it is 'JSON'. 'XML' is the default.
             merge_driver = json_merge_driver
 
         merge_driver.set_paths_and_patterns(paths_and_patterns)
