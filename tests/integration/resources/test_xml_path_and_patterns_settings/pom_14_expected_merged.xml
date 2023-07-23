@@ -10,7 +10,7 @@
     <groupId>com.dummy</groupId>
     <artifactId>java-web-project</artifactId>
     <packaging>war</packaging>
-    <version>NEW_VALUE_ON_OURS</version>
+    <version>ORIGINAL_VALUE</version>
     <name>java-web-project Maven Webapp</name>
     <url>http://maven.apache.org</url>
     <properties>
@@ -26,7 +26,7 @@
         <some-app3.version>NEW_VALUE_ON_OURS</some-app3.version>
 
         <!-- Help git merge separating conflicted chunks. Separate this line from others. -->
-        <jetty.maven.plugin-version>ORIGINAL_VALUE</jetty.maven.plugin-version>
+        <jetty.maven.plugin-version>NEW_VALUE_ON_THEIRS</jetty.maven.plugin-version>
     </properties>
     <dependencies>
         <!-- This is a dependency which version is set by a property. -->

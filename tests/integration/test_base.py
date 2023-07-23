@@ -33,7 +33,7 @@ class TestBase(unittest.TestCase):
         self.resources_path = pathlib.Path(self.abs_project_root_path, 'tests', 'integration', 'resources',
                                            self.module_name)
         self.abs_temp_test_dir_path = pathlib.Path(self.abs_project_root_path, 'target',
-                                               f'{time.time()}-{self.current_test_name}')
+                                                   f'{time.time()}-{self.current_test_name}')
         self.gitrepo_path = pathlib.Path(self.abs_temp_test_dir_path, 'testrepo')
         os.makedirs(self.gitrepo_path)
 
@@ -51,14 +51,14 @@ class TestBase(unittest.TestCase):
     def print_commit_graph(self) -> None:
         self.exec_cmd(['git', 'log', '--decorate', '--oneline', '--graph', '--all'])
 
-    def git_init(self, type='XML') -> None:
+    def git_init(self, file_type='XML') -> None:
         self.exec_cmd(['git', '--version'])
         self.exec_cmd(['git', 'init'])
 
         with open('./.gitattributes', 'w') as f:
-            if type == 'XML':
+            if file_type == 'XML':
                 f.write('pom.xml merge=my-merge-driver')
-            elif type == 'JSON':
+            elif file_type == 'JSON':
                 f.write('package.json merge=my-merge-driver')
             else:
                 self.assertTrue(False, "Expect type 'XML' or 'JSON'")

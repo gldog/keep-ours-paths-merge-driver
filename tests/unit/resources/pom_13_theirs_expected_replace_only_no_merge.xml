@@ -19,13 +19,9 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <revision>ORIGINAL_VALUE</revision>
         <spring.version>ORIGINAL_VALUE</spring.version>
-        <some-app1.version>NEW_VALUE_ON_OURS</some-app1.version>
-        <some-app2.version>NEW_VALUE_ON_OURS</some-app2.version>
-
-        <!-- Help git merge separating conflicted chunks. Separate this line from others. -->
-        <some-app3.version>NEW_VALUE_ON_OURS</some-app3.version>
-
-        <!-- Help git merge separating conflicted chunks. Separate this line from others. -->
+        <some-app1.version>ORIGINAL_VALUE</some-app1.version>
+        <some-app2.version>ORIGINAL_VALUE</some-app2.version>
+        <some-app3.version>NEW_VALUE_ON_THEIRS</some-app3.version>
         <jetty.maven.plugin-version>ORIGINAL_VALUE</jetty.maven.plugin-version>
     </properties>
     <dependencies>

@@ -13,6 +13,7 @@ class TestXml1XPath(TestBase):
         - Use the default paths_and_patterns, which is './version'.
         - Only the <version/> tag line is conflicted.
         """
+
         self.git_init()
 
         self.exec_cmd(['git', 'checkout', self.main_branch_name])

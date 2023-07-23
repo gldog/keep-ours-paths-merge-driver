@@ -4,6 +4,7 @@ import re
 from functools import reduce
 from operator import getitem
 
+from keep_ours_paths_merge_driver import config
 from keep_ours_paths_merge_driver import utils
 
 logger = logging.getLogger()
@@ -11,7 +12,8 @@ logger = logging.getLogger()
 # The format is:
 #   <the-jsonpath>:<some-regex>
 DEFAULT_PATHS_AND_PATTERNS = [
-    {'path': 'version', 'pattern': None}
+    # TODO remove default config
+    {'merge_strategy': config.MERGE_STRATEGY_ON_CONFLICT_OURS, 'path': 'version', 'pattern': None}
 ]
 
 g_paths_and_patterns = DEFAULT_PATHS_AND_PATTERNS
@@ -63,14 +65,24 @@ def get_prepared_theirs_str(base_json_str: str, ours_json_str: str, theirs_json_
         base_value = base_paths_details[common_path]['value']
         ours_value = ours_paths_details[common_path]['value']
         theirs_value = theirs_paths_details[common_path]['value']
+        merge_strategy = ours_paths_details[common_path]['merge_strategy']
         # Are the 3 values different? They are conflicted if the number of unique values is 3.
         # To get the number of unique values, put them in a set and get the size.
         num_distinct_values = len({base_value, ours_value, theirs_value})
-        is_conflict = num_distinct_values == 3
-        logger.debug(
-            f"common_path: {common_path}; num_distinct_values: {num_distinct_values}; is_conflict: {is_conflict}")
 
-        if is_conflict:
+        if merge_strategy == config.MERGE_STRATEGY_ALWAYS_OURS:
+            prepare_theirs = True
+            logger.debug(
+                f"common_path: {common_path}; merge_strategy: {merge_strategy}; prepare_theirs: {prepare_theirs}")
+        else:
+            # Merge-strategy is MERGE_STRATEGY_NAME_ON_CONFLICT_OURS.
+            # Are the 3 values different? They are conflicted if the number of unique values is 3.
+            prepare_theirs = num_distinct_values == 3
+            logger.debug(
+                f"common_path: {common_path}; merge_strategy: {merge_strategy}; prepare_theirs: {prepare_theirs}" +
+                f"; num_distinct_values: {num_distinct_values}")
+
+        if prepare_theirs:
             attribute_name = ours_paths_details[common_path]['attribute_name']
             # I assume there is always one space between the colon and the value. Otherwise, the theirs-attribute
             # won't be found.
@@ -110,6 +122,7 @@ def _get_paths_details(json_dict):
     paths_info = {}
     # TODO: Assure objects_or_value are unique.
     for path_and_pattern in g_paths_and_patterns:
+        merge_strategy = path_and_pattern['merge_strategy']
         jpath = path_and_pattern['path']
         attribute_pattern = path_and_pattern['pattern']
         # Clean-up the jpath. If it starts with a dot, without clean-up the resulting list would have an empty first
@@ -136,10 +149,14 @@ def _get_paths_details(json_dict):
             # where all values are None. And the values are here the attribute_pattern. But the
             # DEFAULT_PATHS_AND_PATTERNS can be overwritten with set_paths_and_patterns().
             if not attribute_pattern:
-                path_info = {jpath: {'attribute_name': attribute_name, 'value': value}}
+                path_info = {
+                    jpath: {'merge_strategy': merge_strategy, 'attribute_name': attribute_name, 'value': value}}
                 paths_info.update(path_info)
             elif re.match(attribute_pattern, str(attribute_name)):
                 # jpath += '.' + attribute_name
-                path_info = {f'{jpath}.{attribute_name}': {'attribute_name': attribute_name, 'value': value}}
+                path_info = {
+                    f'{jpath}.{attribute_name}':
+                        {'merge_strategy': merge_strategy, 'attribute_name': attribute_name, 'value': value}
+                }
                 paths_info.update(path_info)
     return paths_info

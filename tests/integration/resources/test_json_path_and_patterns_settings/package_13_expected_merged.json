@@ -1,0 +1,26 @@
+{
+  "name": "some-app",
+  "version": "ORIGINAL_VALUE",
+  "scripts": {
+    "build:jenkins": "npm run build:ngbrk:prod && npm run build:ngtx:prod",
+    "UI-test-local:ngbrk": "concurrently \"npm run start:ngbrk:ng\" \"npm run start:local-dev\" \"npm run cypress:open:ngbrk\""
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "~11.2.14",
+    "@angular/router": "~11.2.14",
+    "@mycompany/some-app1": "ORIGINAL_VALUE",
+    "@mycompany/some-app2": "ORIGINAL_VALUE",
+
+    "@mycompany/some-app3": "NEW_VALUE_ON_THEIRS",
+
+    "@ng-idle/core": "NEW_VALUE_ON_OURS",
+    "zone.js": "~0.10.3"
+  },
+  "devDependencies": {
+    "@angular-builders/custom-webpack": "^11.1.1",
+    "@angular/cli": "~11.2.14",
+    "cheerio": "^1.0.0-rc.12",
+    "yargs-parser": "^17.0.0"
+  }
+}

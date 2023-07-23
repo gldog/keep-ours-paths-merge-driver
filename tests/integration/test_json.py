@@ -14,7 +14,7 @@ class TestJson1JPath(TestBase):
         - Only the <version/> tag line is conflicted.
         """
 
-        self.git_init(type='JSON')
+        self.git_init(file_type='JSON')
 
         self.exec_cmd(['git', 'checkout', self.main_branch_name])
         self.copy_file_to_existing_branch_and_commit(self.main_branch_name, 'package_01_base.json', 'package.json')
@@ -48,7 +48,7 @@ class TestJson1JPath(TestBase):
         - The line-conflicts doesn't matter to this test (as the merge-driver does nothing than delegating).
         """
 
-        self.git_init(type='JSON')
+        self.git_init(file_type='JSON')
 
         self.exec_cmd(['git', 'checkout', self.main_branch_name])
         self.exec_cmd(['git', 'checkout', '-b', 'theirs-branch'])
@@ -60,7 +60,7 @@ class TestJson1JPath(TestBase):
 
         self.print_commit_graph()
 
-        self.install_merge_driver('-t JSON -p version')
+        self.install_merge_driver("-t JSON -p 'version'")
 
         env = os.environ.copy()
         env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))

@@ -3,6 +3,7 @@ import re
 
 from lxml import etree
 
+from keep_ours_paths_merge_driver import config
 from keep_ours_paths_merge_driver import utils
 
 logger = logging.getLogger()
@@ -10,7 +11,8 @@ logger = logging.getLogger()
 # The format is:
 #   <the-xpath>:<some-tag-regex>
 DEFAULT_PATHS_AND_PATTERNS = [
-    {'path': './version', 'pattern': None}
+    # TODO remove default config
+    {'merge_strategy': config.MERGE_STRATEGY_ON_CONFLICT_OURS, 'path': './version', 'pattern': None}
 ]
 
 g_paths_and_patterns = DEFAULT_PATHS_AND_PATTERNS
@@ -74,14 +76,23 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
         base_value = base_paths_details[common_path]['value']
         ours_value = ours_paths_details[common_path]['value']
         theirs_value = theirs_paths_details[common_path]['value']
-        # Are the 3 values different? They are conflicted if the number of unique values is 3.
+        merge_strategy = ours_paths_details[common_path]['merge_strategy']
         # To get the number of unique values, put them in a set and get the size.
         num_distinct_values = len({base_value, ours_value, theirs_value})
-        is_conflict = num_distinct_values == 3
-        logger.debug(
-            f"common_path: {common_path}; num_distinct_values: {num_distinct_values}; is_conflict: {is_conflict}")
 
-        if is_conflict:
+        if merge_strategy == config.MERGE_STRATEGY_ALWAYS_OURS:
+            prepare_theirs = True
+            logger.debug(
+                f"common_path: {common_path}; merge_strategy: {merge_strategy}; prepare_theirs: {prepare_theirs}")
+        else:
+            # Merge-strategy is MERGE_STRATEGY_NAME_ON_CONFLICT_OURS.
+            # Are the 3 values different? They are conflicted if the number of unique values is 3.
+            prepare_theirs = num_distinct_values == 3
+            logger.debug(
+                f"common_path: {common_path}; merge_strategy: {merge_strategy}; prepare_theirs: {prepare_theirs}" +
+                f"; num_distinct_values: {num_distinct_values}")
+
+        if prepare_theirs:
             tag_name = ours_paths_details[common_path]['tag_name']
             theirs_tag_to_search = f'<{tag_name}>{theirs_value}</{tag_name}>'
             ours_tag_replacement = f'<{tag_name}>{ours_value}</{tag_name}>'
@@ -117,6 +128,7 @@ def _get_paths_details(xml_doc):
     paths_info = {}
     # TODO: Assure tags are unique.
     for path_and_pattern in g_paths_and_patterns:
+        merge_strategy = path_and_pattern['merge_strategy']
         xpath = path_and_pattern['path']
         tag_pattern = path_and_pattern['pattern']
         tags = xml_doc.findall(xpath)
@@ -126,6 +138,7 @@ def _get_paths_details(xml_doc):
                 path = xml_doc_tree.getpath(tag)
                 tag_name = tag.tag
                 value = tag.text
-                path_info = {path: {'tag_name': tag_name, 'value': value, 'tag_object': tag}}
+                path_info = {
+                    path: {'merge_strategy': merge_strategy, 'tag_name': tag_name, 'value': value, 'tag_object': tag}}
                 paths_info.update(path_info)
     return paths_info
