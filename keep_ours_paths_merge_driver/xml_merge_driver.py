@@ -56,16 +56,16 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
     # Detect conflicts.
     #
     # There are two types of conflicts:
-    #   - A value conflict in an XML-document. This is the case, if a path is given in all three documents, and all
+    #   - A value conflict in an XML-document. This is the case if a path is given in all three documents, and all
     #       values are different.
-    #   - A line/hunk conflict in a file (represented as string). This is the case, if the line/hunk in all three
+    #   - A line/hunk conflict in a file (represented as string). This is the case if the line/hunk in all three
     #       files are different.
     #
     # Regarding the merge-driver it is assumed the file is not restructured, so an XPath represents a line in a file.
     #
-    # {} makes a set. * dereferences the list-items.
-    #
-    common_paths = {*base_paths_details.keys(), *ours_paths_details.keys(), *theirs_paths_details.keys()}
+
+    common_paths = set.intersection(
+        set(base_paths_details.keys()), set(ours_paths_details.keys()), set(theirs_paths_details.keys()))
     logger.debug(f"common_paths: {common_paths}")
     for common_path in common_paths:
         base_value = base_paths_details[common_path]['value']

@@ -52,9 +52,9 @@ def get_prepared_theirs_str(base_json_str: str, ours_json_str: str, theirs_json_
     # Regarding the merge-driver it is assumed the file is not restructured, so an JSON-path represents a line in a
     # file.
     #
-    # {} makes a set. * dereferences the list-items.
-    #
-    common_paths = {*base_paths_details.keys(), *ours_paths_details.keys(), *theirs_paths_details.keys()}
+
+    common_paths = set.intersection(
+        set(base_paths_details.keys()), set(ours_paths_details.keys()), set(theirs_paths_details.keys()))
     logger.debug(f"common_paths: {common_paths}")
     for common_path in common_paths:
         base_value = base_paths_details[common_path]['value']
@@ -140,9 +140,6 @@ def _get_paths_details(json_dict):
         for attribute_name, value in objects.items():
             # TODO: Expect value always as type str.
             logger.debug(f"  attribute_name: {attribute_name}; value: type: {type(value)}, value: {value}")
-            # IDEA reports "Unexpected type(s): (None, str)". I assume this is because of the DEFAULT_PATHS_AND_PATTERNS
-            # where all values are None. And the values are here the attribute_pattern. But the
-            # DEFAULT_PATHS_AND_PATTERNS can be overwritten with set_paths_and_patterns().
             if not attribute_pattern:
                 path_info = {
                     jpath: {'merge_strategy': merge_strategy, 'attribute_name': attribute_name, 'value': value}}
