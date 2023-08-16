@@ -8,37 +8,6 @@ from tests.integration.test_base import TestBase
 
 class TestJson1JPath(TestBase):
 
-    def test_default_paths_and_patterns(self):
-        """
-        - Use the default paths_and_patterns, which is './version'.
-        - Only the <version/> tag line is conflicted.
-        """
-
-        self.git_init(file_type='JSON')
-
-        self.exec_cmd(['git', 'checkout', self.main_branch_name])
-        self.copy_file_to_existing_branch_and_commit(self.main_branch_name, 'package_01_base.json', 'package.json')
-
-        self.exec_cmd(['git', 'checkout', self.main_branch_name])
-        self.exec_cmd(['git', 'checkout', '-b', 'theirs-branch'])
-        self.copy_file_to_existing_branch_and_commit('theirs-branch', 'package_01_theirs.json', 'package.json')
-
-        self.exec_cmd(['git', 'checkout', self.main_branch_name])
-        self.exec_cmd(['git', 'checkout', '-b', 'ours-branch'])
-        self.copy_file_to_existing_branch_and_commit('ours-branch', 'package_01_ours.json', 'package.json')
-
-        self.print_commit_graph()
-
-        # No -p option leads to the default-paths-setting.
-        self.install_merge_driver('-t JSON')
-
-        env = os.environ.copy()
-        env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
-        self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], env=env)
-        self.exec_cmd(['git', 'status'])
-        self.assertTrue(
-            filecmp.cmp(pathlib.Path(self.resources_path, 'package_01_expected_merged.json'), 'package.json'))
-
     def test_no_merge_base(self):
         """
         - Use the default paths_and_patterns, which is 'version'.

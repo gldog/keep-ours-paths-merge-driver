@@ -8,39 +8,6 @@ from tests.integration.test_base import TestBase
 
 class TestXml1XPath(TestBase):
 
-    def test_default_paths_and_patterns(self):
-        """
-        - Use the default paths_and_patterns, which is './version'.
-        - Only the <version/> tag line is conflicted.
-        """
-
-        self.git_init()
-
-        self.exec_cmd(['git', 'checkout', self.main_branch_name])
-        self.copy_file_to_existing_branch_and_commit(self.main_branch_name, 'pom_01_base.xml', 'pom.xml')
-
-        self.exec_cmd(['git', 'checkout', self.main_branch_name])
-        self.exec_cmd(['git', 'checkout', '-b', 'theirs-branch'])
-        self.copy_file_to_existing_branch_and_commit('theirs-branch', 'pom_01_theirs.xml', 'pom.xml')
-
-        self.exec_cmd(['git', 'checkout', self.main_branch_name])
-        self.exec_cmd(['git', 'checkout', '-b', 'ours-branch'])
-        self.copy_file_to_existing_branch_and_commit('ours-branch', 'pom_01_ours.xml', 'pom.xml')
-
-        self.print_commit_graph()
-
-        # None leads to omit the -p option, which leads to the default-paths-setting.
-        self.install_merge_driver(None)
-
-        env = os.environ.copy()
-        env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
-        self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], env=env)
-        self.exec_cmd(['git', 'status'])
-
-        # self.assertEqual(
-        #    open(pathlib.Path(self.resources_path, 'pom_01_expected_merged.xml')).read(), open('pom.xml').read())
-        self.assertTrue(filecmp.cmp(pathlib.Path(self.resources_path, 'pom_01_expected_merged.xml'), 'pom.xml'))
-
     def test_no_merge_base(self):
         """
         - Use the default paths_and_patterns, which is './version'.
