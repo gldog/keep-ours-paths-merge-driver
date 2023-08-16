@@ -9,13 +9,8 @@ from keep_ours_paths_merge_driver import utils
 logger = logging.getLogger()
 
 # The format is:
-#   <the-xpath>:<some-tag-regex>
-DEFAULT_PATHS_AND_PATTERNS = [
-    # TODO remove default config
-    {'merge_strategy': config.MERGE_STRATEGY_ON_CONFLICT_OURS, 'path': './version', 'pattern': None}
-]
-
-g_paths_and_patterns = DEFAULT_PATHS_AND_PATTERNS
+#   <optional merge-strategy>:<mandatory the-jsonpath>:<optional some-regex>
+g_paths_and_patterns = {}
 
 
 def set_paths_and_patterns(path_and_patterns):
