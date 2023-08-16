@@ -122,7 +122,7 @@ class TestBase(unittest.TestCase):
 
     def create_zipapp(self) -> None:
         self.exec_cmd(['shiv', '-c', self.APP_SOURCE_DIRNAME, '-o', self.merge_driver_executable_path,
-                       self.abs_project_root_path])
+                       '-r', self.abs_project_root_path + '/requirements.txt', self.abs_project_root_path])
 
         # zipapp.create_archive(source=f'{self.abs_project_root_path}/{self.APP_SOURCE_DIRNAME}',
         #                      target=self.merge_driver_executable_path)
