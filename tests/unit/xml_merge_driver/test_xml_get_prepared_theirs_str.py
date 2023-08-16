@@ -102,6 +102,42 @@ class TestXmlMergeDriverGetPreparedTheirsStr(unittest.TestCase):
         prepared_theirs_str = xml_merge_driver.get_prepared_theirs_str(base_xml_str, ours_xml_str, theirs_xml_str)
         self.assertEqual(prepared_theirs_str_expected, prepared_theirs_str)
 
+    def test_removed_property_in_ours(self):
+        testfiles_base_path = 'tests/unit/resources/'
+        with open(testfiles_base_path + 'pom_21_base.xml') as f_base:
+            base_xml_str = f_base.read()
+        with open(testfiles_base_path + 'pom_21_ours.xml') as f_ours:
+            ours_xml_str = f_ours.read()
+        with open(testfiles_base_path + 'pom_21_theirs.xml') as f_theirs:
+            theirs_xml_str = f_theirs.read()
+
+        with open(testfiles_base_path + 'pom_21_theirs_expected_replace_only_no_merge.xml') as f_expected:
+            prepared_theirs_str_expected = f_expected.read()
+
+        xml_merge_driver.set_paths_and_patterns([
+            {'merge_strategy': 'onconflict-ours', 'path': './properties/', 'pattern': '.+[.]version'}])
+
+        prepared_theirs_str = xml_merge_driver.get_prepared_theirs_str(base_xml_str, ours_xml_str, theirs_xml_str)
+        self.assertEqual(prepared_theirs_str_expected, prepared_theirs_str)
+
+    def test_removed_property_in_theis(self):
+        testfiles_base_path = 'tests/unit/resources/'
+        with open(testfiles_base_path + 'pom_22_base.xml') as f_base:
+            base_xml_str = f_base.read()
+        with open(testfiles_base_path + 'pom_22_ours.xml') as f_ours:
+            ours_xml_str = f_ours.read()
+        with open(testfiles_base_path + 'pom_22_theirs.xml') as f_theirs:
+            theirs_xml_str = f_theirs.read()
+
+        with open(testfiles_base_path + 'pom_22_theirs_expected_replace_only_no_merge.xml') as f_expected:
+            prepared_theirs_str_expected = f_expected.read()
+
+        xml_merge_driver.set_paths_and_patterns([
+            {'merge_strategy': 'onconflict-ours', 'path': './properties/', 'pattern': '.+[.]version'}])
+
+        prepared_theirs_str = xml_merge_driver.get_prepared_theirs_str(base_xml_str, ours_xml_str, theirs_xml_str)
+        self.assertEqual(prepared_theirs_str_expected, prepared_theirs_str)
+
 
 if __name__ == '__main__':
     unittest.main()
