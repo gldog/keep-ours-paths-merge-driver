@@ -4,6 +4,7 @@ import re
 
 __version__ = '1.0.0.dev'
 
+SCRIPT_NAME = 'keep_ours_paths_merge_driver'
 PATH_LIST_SEPARATOR_PATTERN = '[\\s,;]+'
 PATHS_TO_PATTERN_SEPARATOR = ':'
 DEFAULT_LOGLEVEL = 'INFO'
@@ -31,7 +32,7 @@ def configure_logger(loglevel):
         # logging.Formatter('%(asctime)s:%(levelname)s:%(module)s:%(funcName)s(): %(message)s'))
         # logging.Formatter('%(asctime)s:%(levelname)s:%(module)s:%(funcName)s %(message)s'))
         # logging.Formatter('%(asctime)s:%(levelname)s:%(funcName)s %(message)s'))
-        logging.Formatter('%(asctime)s:%(levelname)s:Merge-Driver: %(message)s'))
+        logging.Formatter(f'%(asctime)s:{SCRIPT_NAME}:%(levelname)s: %(message)s'))
     # See also https://docs.python.org/3/howto/logging.html:
     # The check for valid values have been done in parser.add_argument().
     # setLevel() takes string-names as well as numeric levels.
@@ -44,15 +45,15 @@ def init_argument_parser():
     parser = \
         argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                 description="TODO description")
-    # The '%' is a special character and has to be escaped by another '%'#
+    # The '%' is a special character and has to be escaped by another '%'
     parser.add_argument('-O', '--base', required=True,
                         help="Base version (ancestor's version). Set by Git in %%O.")
     parser.add_argument('-A', '--ours', required=True,
                         help="Ours version (current version). Set by Git in %%A.")
     parser.add_argument('-B', '--theirs', required=True,
                         help="Theirs version (other branches' version). Set by Git in %%B")
-    parser.add_argument('-P', '--path',
-                        help="TODO implement: The pathname in which the merged result will be stored. Set by Git in %%P.")
+    parser.add_argument('-P', '--path', default='',
+                        help="The pathname in which the merged result will be stored. Set by Git in %%P.")
     parser.add_argument('-p', '--pathspatterns', nargs='+', metavar='MERGE-STRATEGY:PATH:PATTERN',
                         # help=f"Paths as regex-patterns to keep ours, separated by {PATHS_TO_PATTERN_SEPARATOR}."
                         help=

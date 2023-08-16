@@ -10,8 +10,6 @@ from keep_ours_paths_merge_driver import config
 from keep_ours_paths_merge_driver import json_merge_driver
 from keep_ours_paths_merge_driver import xml_merge_driver
 
-script_name = 'keep_ours_paths_merge_driver'
-
 
 def main():
     # For parameters see also "Defining a custom merge driver"
@@ -22,7 +20,8 @@ def main():
 
     config.configure_logger(cl_args.loglevel)
     logger = logging.getLogger()
-    logger.info(script_name)
+    for_path = f' for {cl_args.path}' if cl_args.path else ''
+    logger.info(f'Merge-driver triggered{for_path}')
     logger.debug(f"sys.argv: {sys.argv}")
     logger.debug(f"args: {cl_args}")
 
@@ -55,30 +54,29 @@ def main():
         # Get path_and_patterns either from environment variable or command-line parameter. Environment variable takes
         # precedence.
         paths_and_patterns = config.get_paths_and_patterns(paths_from_environment_as_str, paths_from_cl_args_as_list)
-        logger.debug(f"config.get_paths_and_patterns(): {paths_and_patterns}")
-        if not paths_and_patterns:
+        logger.info(f"paths_and_patterns: {paths_and_patterns}")
+        if paths_and_patterns:
+            # This is the tiny merge-driver-factory.
+            # The choices are limited to 'XML' and 'JSON'. So there is no need to check any alternative to 'XML'.
+            # If not 'XML' it is 'JSON'. 'XML' is the default.
+            if cl_args.filetype == 'XML':
+                merge_driver = xml_merge_driver
+            else:
+                merge_driver = json_merge_driver
+
+            merge_driver.set_paths_and_patterns(paths_and_patterns)
+            prepared_theirs_str = merge_driver.get_prepared_theirs_str(base_file_str, ours_file_str, theirs_file_str)
+
+            if cl_args.stdout:
+                print(prepared_theirs_str)
+
+            with open(theirs_filepath, mode='w', newline='') as f:
+                f.write(prepared_theirs_str)
+        else:
             logger.info("paths_and_patterns-config is empty."
                         + " Nothing has been set in command-line-parameter -p"
                         + " nor in environment-variable KOP_MERGE_DRVIER_PATHSPATTERNS."
-                        + " The merge-driver did no merge-preparation.")
-
-        # This is the tiny merge-driver-factory.
-        # The choices are limited to 'XML' and 'JSON'. So there is no need to check any alternative to 'XML'
-        # If not 'XML' it is 'JSON'. 'XML' is the default.
-        if cl_args.filetype == 'XML':
-            merge_driver = xml_merge_driver
-        else:
-            merge_driver = json_merge_driver
-
-        merge_driver.set_paths_and_patterns(paths_and_patterns)
-        logger.info(f"paths and patterns: {merge_driver.get_paths_and_patterns()}")
-        prepared_theirs_str = merge_driver.get_prepared_theirs_str(base_file_str, ours_file_str, theirs_file_str)
-
-        if cl_args.stdout:
-            print(prepared_theirs_str)
-
-        with open(theirs_filepath, mode='w', newline='') as f:
-            f.write(prepared_theirs_str)
+                        + " This means no preparation of theirs-file take place.")
 
     # From the docs https://git-scm.com/docs/git-merge-file:
     #   "git merge-file incorporates all changes that lead from the <base-file> to <other-file> into
