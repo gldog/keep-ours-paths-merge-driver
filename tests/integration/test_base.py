@@ -7,16 +7,18 @@ import unittest
 
 
 class TestBase(unittest.TestCase):
+    TESTSUITE_START_TIME = str(time.time())
     PYTHON_BINARY = 'python3'
-    # Name of the subdirectory containing the product-sources.
+    # Name of the subdirectory containing the sources to build the zippapp from.
     APP_SOURCE_DIRNAME = 'keep_ours_paths_merge_driver'
     merge_driver_executable_path = None
-    abs_project_root_path = None
+    abs_project_root_path = os.getcwd()
     current_test_name = None
     current_test_dir = None
     # Dependent on the git version or config settings the default branch-name is either "master" or something else,
     # e.g. "main".
     main_branch_name = None
+    is_zipapp_built = False
 
     def setUp(self) -> None:
         # self.assertTrue(False, f"CWD:{os.getcwd()}")
@@ -28,22 +30,24 @@ class TestBase(unittest.TestCase):
         self.current_test_name = self.id()
         self.module_name = self.id().split('.')[-3]
         print(f"self.id(): {self.id()}; module: {self.module_name}")
-        self.abs_project_root_path = os.getcwd()
+        # self.abs_project_root_path = os.getcwd()
         # There is the relation of 1 test-module to 1 subdirectory in resources.
         self.resources_path = pathlib.Path(self.abs_project_root_path, 'tests', 'integration', 'resources',
                                            self.module_name)
-        self.abs_temp_test_dir_path = pathlib.Path(self.abs_project_root_path, 'target',
-                                                   f'{time.time()}-{self.current_test_name}')
-        self.gitrepo_path = pathlib.Path(self.abs_temp_test_dir_path, 'testrepo')
+        self.abs_testsuite_path = pathlib.Path(self.abs_project_root_path, 'target',
+                                               f'testsuite-{self.TESTSUITE_START_TIME}')
+        self.abs_test_dir_path = pathlib.Path(self.abs_testsuite_path, self.current_test_name)
+        self.gitrepo_path = pathlib.Path(self.abs_test_dir_path, 'testrepo')
         os.makedirs(self.gitrepo_path)
 
         os.chdir(self.gitrepo_path)
 
-        self.merge_driver_executable_path = pathlib.Path(self.abs_project_root_path, self.abs_temp_test_dir_path,
-                                                         self.APP_SOURCE_DIRNAME + '.pyz')
+        self.merge_driver_executable_path = pathlib.Path(self.abs_testsuite_path, self.APP_SOURCE_DIRNAME + '.pyz')
 
-        # Create a pyz and place it into the 'target' directory.
-        self.create_zipapp()
+        # Create a pyz and place it into the 'target' directory. Create it only once per test-suite.
+        if not TestBase.is_zipapp_built:
+            self.create_zipapp()
+            TestBase.is_zipapp_built = True
 
     def tearDown(self) -> None:
         os.chdir(self.abs_project_root_path)
@@ -121,8 +125,10 @@ class TestBase(unittest.TestCase):
         self.exec_cmd(['git', 'status'])
 
     def create_zipapp(self) -> None:
+        # Create the zippapp with the dependencies included.
         self.exec_cmd(['shiv', '-c', self.APP_SOURCE_DIRNAME, '-o', self.merge_driver_executable_path,
                        '-r', self.abs_project_root_path + '/requirements.txt', self.abs_project_root_path])
 
+        # This was the native way for creating the zippapp. But that didn't include the dependencies.
         # zipapp.create_archive(source=f'{self.abs_project_root_path}/{self.APP_SOURCE_DIRNAME}',
         #                      target=self.merge_driver_executable_path)
