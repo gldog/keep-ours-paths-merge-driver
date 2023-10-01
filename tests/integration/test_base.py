@@ -11,6 +11,8 @@ class TestBase(unittest.TestCase):
     PYTHON_BINARY = 'python3'
     # Name of the subdirectory containing the sources to build the zippapp from.
     APP_SOURCE_DIRNAME = 'keep_ours_paths_merge_driver'
+    GITATTRIBUTES_DOTGITATTRIBUTES = './.gitattributes'
+    GITATTRIBUTES_DOTGIT_INFO_ATTRIBUTES = './.git/info/attributes'
     merge_driver_executable_path = None
     abs_project_root_path = os.getcwd()
     current_test_name = None
@@ -55,20 +57,36 @@ class TestBase(unittest.TestCase):
     def print_commit_graph(self) -> None:
         self.exec_cmd(['git', 'log', '--decorate', '--oneline', '--graph', '--all'])
 
-    def git_init(self, file_type='XML') -> None:
+    def git_init(self, file_type='XML', attributes_path=GITATTRIBUTES_DOTGITATTRIBUTES) -> None:
+        """
+        Cerate a git-repo. Create also a .gitattributes file in case file_type is XML or JSON.
+        :param file_type: XMK (default), JSON, NONE.
+        :param attributes_path: Either ./.gitattributes (GITATTRIBUTES_DOTGITATTRIBUTES)
+                or ./.git/info/attributes (GITATTRIBUTES_DOTGIT_INFO_ATTRIBUTES).
+        """
+
         self.exec_cmd(['git', '--version'])
         self.exec_cmd(['git', 'init'])
 
-        with open('./.gitattributes', 'w') as f:
-            if file_type == 'XML':
-                f.write('pom.xml merge=my-merge-driver')
-            elif file_type == 'JSON':
-                f.write('package.json merge=my-merge-driver')
-            else:
-                self.assertTrue(False, "Expect type 'XML' or 'JSON'")
+        if attributes_path in [self.GITATTRIBUTES_DOTGITATTRIBUTES, self.GITATTRIBUTES_DOTGIT_INFO_ATTRIBUTES]:
+            # The "git init" has created the dirctory .git/info, which is needed for .git/info/attribues.
+            with open(attributes_path, 'w') as f:
+                if file_type == 'XML':
+                    f.write('pom.xml merge=my-merge-driver')
+                elif file_type == 'JSON':
+                    f.write('package.json merge=my-merge-driver')
+                else:
+                    self.fail("Expect type 'XML' or 'JSON'")
 
-        self.exec_cmd(['git', 'add', '.'])
-        self.exec_cmd(['git', 'commit', '-m', 'Add .gitattributes'])
+            # The .gitattributes is checked-in. The .git/info/atttribues not.
+            if attributes_path is self.GITATTRIBUTES_DOTGITATTRIBUTES:
+                self.exec_cmd(['git', 'add', '.'])
+                self.exec_cmd(['git', 'commit', '-m', 'Add .gitattributes'])
+            else:
+                self.exec_cmd(['git', 'commit', '--allow-empty', '-m', 'Initial'])
+        else:
+            self.fail(f"Unexpected attributes_path: {attributes_path}")
+
         self.exec_cmd(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
         # The main branch does exist after the first commit.
         self.main_branch_name = self.get_main_branch_name()
