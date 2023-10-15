@@ -55,11 +55,10 @@ def init_argument_parser():
     parser.add_argument('-P', '--path', default='',
                         help="The pathname in which the merged result will be stored. Set by Git in %%P.")
     parser.add_argument('-p', '--pathspatterns', nargs='+', metavar='MERGE-STRATEGY:PATH:PATTERN',
-                        # help=f"Paths as regex-patterns to keep ours, separated by {PATHS_TO_PATTERN_SEPARATOR}."
                         help=
-                        f"List of paths and patterns to keep ours, separated by '{PATHS_TO_PATTERN_SEPARATOR}'." +
-                        " The path is mandatory, the pattern is optional." +
-                        f" A merge-strategy can be given one of {MERGE_STRATEGIES}." +
+                        f"List of paths with merge-strategy and and path-pattern, separated by '{PATHS_TO_PATTERN_SEPARATOR}'." +
+                        " The path is mandatory, the merge-strategy and path-pattern are optional." +
+                        f" The merge-strategy is one of {MERGE_STRATEGIES}." +
                         f" Defaults to {MERGE_STRATEGY_DEFAULT}.")
     parser.add_argument('-o', '--stdout', action='store_true', default=False,
                         help="Print the prepared file 'theirs' to stdout.")
