@@ -14,6 +14,9 @@ class TestJsonMergeDriverGetPreparedTheirsStr(unittest.TestCase):
         with open(testfiles_base_path + 'package_01_theirs.json') as f_theirs:
             theirs_json_str = f_theirs.read()
 
+        json_merge_driver.set_paths_and_patterns([
+            {'merge_strategy': 'onconflict-ours', 'path': '$.version', 'pattern': None}])
+
         with open(testfiles_base_path + 'package_01_theirs_expected_replace_only_no_merge.json') as f_expected:
             prepared_theirs_str_expected = f_expected.read()
 

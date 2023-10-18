@@ -17,6 +17,9 @@ class TestXmlMergeDriverGetPreparedTheirsStr(unittest.TestCase):
         with open(testfiles_base_path + 'pom_01_theirs_expected_replace_only_no_merge.xml') as f_expected:
             prepared_theirs_str_expected = f_expected.read()
 
+        xml_merge_driver.set_paths_and_patterns([
+            {'merge_strategy': 'onconflict-ours', 'path': './version', 'pattern': None}])
+
         prepared_theirs_str = xml_merge_driver.get_prepared_theirs_str(base_xml_str, ours_xml_str, theirs_xml_str)
         self.assertEqual(prepared_theirs_str_expected, prepared_theirs_str)
 
@@ -120,7 +123,7 @@ class TestXmlMergeDriverGetPreparedTheirsStr(unittest.TestCase):
         prepared_theirs_str = xml_merge_driver.get_prepared_theirs_str(base_xml_str, ours_xml_str, theirs_xml_str)
         self.assertEqual(prepared_theirs_str_expected, prepared_theirs_str)
 
-    def test_removed_property_in_theis(self):
+    def test_removed_property_in_theirs(self):
         testfiles_base_path = 'tests/unit/resources/'
         with open(testfiles_base_path + 'pom_22_base.xml') as f_base:
             base_xml_str = f_base.read()
