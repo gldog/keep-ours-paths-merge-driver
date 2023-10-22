@@ -72,8 +72,6 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
         ours_value = ours_paths_details[common_path]['value']
         theirs_value = theirs_paths_details[common_path]['value']
         merge_strategy = ours_paths_details[common_path]['merge_strategy']
-        # To get the number of unique values, put them in a set and get the size.
-        num_distinct_values = len({base_value, ours_value, theirs_value})
 
         if merge_strategy == config.MERGE_STRATEGY_ALWAYS_OURS:
             prepare_theirs = True
@@ -81,19 +79,22 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
                 f"common_path: {common_path}; merge_strategy: {merge_strategy}; prepare_theirs: {prepare_theirs}")
         else:
             # Merge-strategy is MERGE_STRATEGY_NAME_ON_CONFLICT_OURS.
-            # Are the 3 values different? They are conflicted if the number of unique values is 3.
+            # Are the 3 values different? They are conflicted if the number of distinct values in Base/Ours/Theirs is 3.
+            # To get the number of distinct values, put them in a set and get the size.
+            num_distinct_values = len({base_value, ours_value, theirs_value})
             prepare_theirs = num_distinct_values == 3
             logger.debug(
                 f"common_path: {common_path}; merge_strategy: {merge_strategy}; prepare_theirs: {prepare_theirs}" +
                 f"; num_distinct_values: {num_distinct_values}")
 
         if prepare_theirs:
-            tag_name = ours_paths_details[common_path]['tag_name']
-            theirs_tag_to_search = f'<{tag_name}>{theirs_value}</{tag_name}>'
-            ours_tag_replacement = f'<{tag_name}>{ours_value}</{tag_name}>'
-            logger.debug(f"theirs_tag_to_search: {theirs_tag_to_search}; ours_tag_replacement: {ours_tag_replacement}")
+            theirs_value_to_search = theirs_value
+            ours_value_replacement = ours_value
+            logger.debug(
+                f"theirs_value_to_search: {theirs_value_to_search}; ours_value_replacement: {ours_value_replacement}")
 
-            # Set Ours value to Theirs. 'theirs_element_reference' keeps a reference to the element in theirs_xml_doc.
+            # Set Ours value to Theirs. 'theirs_element_reference' keeps a reference to the XML-element in
+            # theirs_xml_doc.
             theirs_element_reference = theirs_paths_details[common_path]['tag_object']
             theirs_element_reference.text = ours_value
 
@@ -112,7 +113,7 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
                     etree.tostring(etree.fromstring(remove_xmlns_from_xml_string(xml_str).encode()))
                 return neutral_formatted_theirs_xml_str == neutral_formatted_prepared_xml_str
 
-            theirs_xml_str = utils.replace_token(theirs_xml_str, theirs_tag_to_search, ours_tag_replacement,
+            theirs_xml_str = utils.replace_token(theirs_xml_str, theirs_value_to_search, ours_value_replacement,
                                                  check_if_modified_xml_str_is_equal_to_theirs_xml_control_doc)
 
     return theirs_xml_str
@@ -126,14 +127,14 @@ def _get_paths_details(xml_doc):
         merge_strategy = path_and_pattern['merge_strategy']
         xpath = path_and_pattern['path']
         tag_pattern = path_and_pattern['pattern']
-        tags = xml_doc.findall(xpath)
-        logger.debug(f"_get_paths_details(); xpath: {xpath}; tags len: {len(tags)}")
-        for tag in tags:
-            if not tag_pattern or re.match(tag_pattern, tag.tag):
-                path = xml_doc_tree.getpath(tag)
-                tag_name = tag.tag
-                value = tag.text
-                path_info = {
-                    path: {'merge_strategy': merge_strategy, 'tag_name': tag_name, 'value': value, 'tag_object': tag}}
-                paths_info.update(path_info)
+        tag_objects = xml_doc.findall(xpath)
+        logger.debug(f"_get_paths_details(); xpath: {xpath}; matching tags count: {len(tag_objects)}")
+        for tag_object in tag_objects:
+            if not tag_pattern or re.match(tag_pattern, tag_object.tag):
+                full_path = xml_doc_tree.getpath(tag_object)
+                tag_name = tag_object.tag
+                value = tag_object.text
+                paths_info.update({full_path: {
+                    'merge_strategy': merge_strategy, 'tag_name': tag_name,
+                    'value': value, 'tag_object': tag_object}})
     return paths_info
