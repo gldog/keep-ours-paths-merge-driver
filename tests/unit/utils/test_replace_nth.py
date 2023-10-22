@@ -44,70 +44,70 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(expected_str, replaced_str)
 
     def test_replace_nth_on_search_token_at_begin_of_string(self):
-        inputStr = "searchToken"
+        input_str = "searchToken"
 
-        expectedStr = "replaceToken"
-        replacedStr = utils.replace_nth(inputStr, 'searchToken', 'replaceToken', 1)
-        self.assertEqual(expectedStr, replacedStr)
+        expected_str = "replaceToken"
+        replaced_str = utils.replace_nth(input_str, 'searchToken', 'replaceToken', 1)
+        self.assertEqual(expected_str, replaced_str)
 
-        expectedStr = ""
-        replacedStr = utils.replace_nth(inputStr, 'searchToken', 'replaceToken', 0)
-        self.assertEqual(expectedStr, replacedStr)
+        expected_str = ""
+        replaced_str = utils.replace_nth(input_str, 'searchToken', 'replaceToken', 0)
+        self.assertEqual(expected_str, replaced_str)
 
-        replacedStr = utils.replace_nth(inputStr, 'searchToken', 'replaceToken', 2)
-        expectedStr = ""
-        self.assertEqual(expectedStr, replacedStr)
+        replaced_str = utils.replace_nth(input_str, 'searchToken', 'replaceToken', 2)
+        expected_str = ""
+        self.assertEqual(expected_str, replaced_str)
 
-        inputStr = "searchTokenAA\nBB"
+        input_str = "searchTokenAA\nBB"
 
-        expectedStr = "replaceTokenAA\nBB"
-        replacedStr = utils.replace_nth(inputStr, 'searchToken', 'replaceToken', 1)
-        self.assertEqual(expectedStr, replacedStr)
+        expected_str = "replaceTokenAA\nBB"
+        replaced_str = utils.replace_nth(input_str, 'searchToken', 'replaceToken', 1)
+        self.assertEqual(expected_str, replaced_str)
 
-        replacedStr = utils.replace_nth(inputStr, 'searchToken', 'replaceToken', 0)
-        expectedStr = ""
-        self.assertEqual(expectedStr, replacedStr)
+        replaced_str = utils.replace_nth(input_str, 'searchToken', 'replaceToken', 0)
+        expected_str = ""
+        self.assertEqual(expected_str, replaced_str)
 
-        replacedStr = utils.replace_nth(inputStr, 'searchToken', 'replaceToken', 2)
-        expectedStr = ""
-        self.assertEqual(expectedStr, replacedStr)
+        replaced_str = utils.replace_nth(input_str, 'searchToken', 'replaceToken', 2)
+        expected_str = ""
+        self.assertEqual(expected_str, replaced_str)
 
     def testReplaceNthOnSearchTokenAtEndOfString(self):
-        inputStr = "AA\nBBsearchToken"
-        replacedStr = utils.replace_nth(inputStr, "searchToken", "replaceToken", 1)
-        expectedStr = "AA\nBBreplaceToken"
-        self.assertEqual(expectedStr, replacedStr)
+        input_str = "AA\nBBsearchToken"
+        replaced_str = utils.replace_nth(input_str, "searchToken", "replaceToken", 1)
+        expected_str = "AA\nBBreplaceToken"
+        self.assertEqual(expected_str, replaced_str)
 
-        replacedStr = utils.replace_nth(inputStr, "searchToken", "replaceToken", 0)
-        expectedStr = ""
-        self.assertEqual(expectedStr, replacedStr)
+        replaced_str = utils.replace_nth(input_str, "searchToken", "replaceToken", 0)
+        expected_str = ""
+        self.assertEqual(expected_str, replaced_str)
 
-        replacedStr = utils.replace_nth(inputStr, "searchToken", "replaceToken", 2)
-        expectedStr = ""
-        self.assertEqual(expectedStr, replacedStr)
+        replaced_str = utils.replace_nth(input_str, "searchToken", "replaceToken", 2)
+        expected_str = ""
+        self.assertEqual(expected_str, replaced_str)
 
     def testReplaceNthOnMultipleOccurencesWith1Replacement(self):
-        inputStr = "searchTokenAAsearchToken\nsearchTokenBBsearchToken"
+        input_str = "searchTokenAAsearchToken\nsearchTokenBBsearchToken"
 
-        replacedStr = utils.replace_nth(inputStr, "searchToken", "replaceToken", 1)
-        expectedStr = "replaceTokenAAsearchToken\nsearchTokenBBsearchToken"
-        self.assertEqual(expectedStr, replacedStr)
+        replaced_str = utils.replace_nth(input_str, "searchToken", "replaceToken", 1)
+        expected_str = "replaceTokenAAsearchToken\nsearchTokenBBsearchToken"
+        self.assertEqual(expected_str, replaced_str)
 
-        replacedStr = utils.replace_nth(inputStr, "searchToken", "replaceToken", 2)
-        expectedStr = "searchTokenAAreplaceToken\nsearchTokenBBsearchToken"
-        self.assertEqual(expectedStr, replacedStr)
+        replaced_str = utils.replace_nth(input_str, "searchToken", "replaceToken", 2)
+        expected_str = "searchTokenAAreplaceToken\nsearchTokenBBsearchToken"
+        self.assertEqual(expected_str, replaced_str)
 
-        replacedStr = utils.replace_nth(inputStr, "searchToken", "replaceToken", 3)
-        expectedStr = "searchTokenAAsearchToken\nreplaceTokenBBsearchToken"
-        self.assertEqual(expectedStr, replacedStr)
+        replaced_str = utils.replace_nth(input_str, "searchToken", "replaceToken", 3)
+        expected_str = "searchTokenAAsearchToken\nreplaceTokenBBsearchToken"
+        self.assertEqual(expected_str, replaced_str)
 
-        replacedStr = utils.replace_nth(inputStr, "searchToken", "replaceToken", 4)
-        expectedStr = "searchTokenAAsearchToken\nsearchTokenBBreplaceToken"
-        self.assertEqual(expectedStr, replacedStr)
+        replaced_str = utils.replace_nth(input_str, "searchToken", "replaceToken", 4)
+        expected_str = "searchTokenAAsearchToken\nsearchTokenBBreplaceToken"
+        self.assertEqual(expected_str, replaced_str)
 
-        replacedStr = utils.replace_nth(inputStr, "searchToken", "replaceToken", 5)
-        expectedStr = ""
-        self.assertEqual(expectedStr, replacedStr)
+        replaced_str = utils.replace_nth(input_str, "searchToken", "replaceToken", 5)
+        expected_str = ""
+        self.assertEqual(expected_str, replaced_str)
 
 
 if __name__ == '__main__':

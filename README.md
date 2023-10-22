@@ -141,7 +141,7 @@ WARNING: The Child branch's version `v3-SN` wins on `M` not using the merge driv
                \           merge |
                 \                |
                  *----------------------------------------  Child, (theirs), SOURCE_REF
-               v3-SN      
+               v3-SN
 
 B)
 
@@ -248,7 +248,7 @@ But you still have to define the merge driver locally.
 
 Don't define the merge driver globally, as this can afffect merges in complete other repos.
 
-An example how to automatically set-up the merge driver is given
+An example how to automatically set up the merge driver is given
 in [concurrent_git_merge](https://github.com/gldog/concurrent_git_merge) > example-scripts/my.
 
 ## Use case: NPM package.json merge driver to keep the version on "ours" child branch
@@ -327,7 +327,8 @@ Without, default:
 
 # About paths, hunks, structures, and formatting
 
-A merge driver in general is called by `git merge` on conflicted files.
+A merge driver in general is called by `git merge` in general if a 3-way-merge is needed,
+not only on conflicted files.
 Git provides the three file-versions ancestor (base), ours, and theirs to a merge driver.
 The merge driver can make something with that files, and signal Git back with exit code
 0 it has completed the merge, or with exit code >0 Git shall continue the merge with the three file-versions.

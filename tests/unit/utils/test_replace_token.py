@@ -6,30 +6,30 @@ import keep_ours_paths_merge_driver.utils as utils
 class MyTestCase(unittest.TestCase):
 
     def testReplaceTokenWithStringDocReferencePredicate(self):
-        expectedStr = "AAreplaceTokenBB"
+        expected_str = "AAreplaceTokenBB"
 
         def compareToReference(s):
-            return s == expectedStr
+            return s == expected_str
 
-        inputStr = "AABB"
-        expectedStr = "AABB"
-        replacedStr = utils.replace_token(inputStr, "searchToken", "replaceToken", compareToReference)
-        self.assertEqual(expectedStr, replacedStr)
+        input_str = "AABB"
+        expected_str = "AABB"
+        replaced_str = utils.replace_token(input_str, "searchToken", "replaceToken", compareToReference)
+        self.assertEqual(expected_str, replaced_str)
 
-        inputStr = "AAsearchTokenBB"
-        expectedStr = "AAreplaceTokenBB"
-        replacedStr = utils.replace_token(inputStr, "searchToken", "replaceToken", compareToReference)
-        self.assertEqual(expectedStr, replacedStr)
+        input_str = "AAsearchTokenBB"
+        expected_str = "AAreplaceTokenBB"
+        replaced_str = utils.replace_token(input_str, "searchToken", "replaceToken", compareToReference)
+        self.assertEqual(expected_str, replaced_str)
 
-        inputStr = "AAsearchTokenBBsearchTokenCC"
-        expectedStr = "AAsearchTokenBBreplaceTokenCC"
-        replacedStr = utils.replace_token(inputStr, "searchToken", "replaceToken", compareToReference)
-        self.assertEqual(expectedStr, replacedStr)
+        input_str = "AAsearchTokenBBsearchTokenCC"
+        expected_str = "AAsearchTokenBBreplaceTokenCC"
+        replaced_str = utils.replace_token(input_str, "searchToken", "replaceToken", compareToReference)
+        self.assertEqual(expected_str, replaced_str)
 
-        inputStr = "AAsearchTokenBBsearchTokenCCsearchTokenDD"
-        expectedStr = "AAsearchTokenBBsearchTokenCCreplaceTokenDD"
-        replacedStr = utils.replace_token(inputStr, "searchToken", "replaceToken", compareToReference)
-        self.assertEqual(expectedStr, replacedStr)
+        input_str = "AAsearchTokenBBsearchTokenCCsearchTokenDD"
+        expected_str = "AAsearchTokenBBsearchTokenCCreplaceTokenDD"
+        replaced_str = utils.replace_token(input_str, "searchToken", "replaceToken", compareToReference)
+        self.assertEqual(expected_str, replaced_str)
 
 
 if __name__ == '__main__':
