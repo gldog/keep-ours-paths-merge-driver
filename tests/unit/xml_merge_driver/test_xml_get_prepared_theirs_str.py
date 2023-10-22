@@ -141,12 +141,13 @@ class TestXmlMergeDriverGetPreparedTheirsStr(unittest.TestCase):
         prepared_theirs_str = xml_merge_driver.get_prepared_theirs_str(base_xml_str, ours_xml_str, theirs_xml_str)
         self.assertEqual(prepared_theirs_str_expected, prepared_theirs_str)
 
-    def test_1(self):
+    def test_absent_encoding(self):
         """
         This tests if lxml still works without encoding set in the pom.xml file. At developing there was an issue about
         that.
         This test is a copy of test_version_only_with_mergestrategy_onconflict_ours(), but with pom.xml files
-        without the first line "<?xml version="1.0" encoding="UTF-8"?>" omitting the encoding.
+        without the first line:
+                <?xml version="1.0" encoding="UTF-8"?>
         """
         testfiles_base_path = 'tests/unit/resources/'
         with open(testfiles_base_path + 'pom_31_base.xml') as f_base:
