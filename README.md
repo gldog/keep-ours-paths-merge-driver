@@ -6,7 +6,7 @@ This Git custom merge driver `keep_ours_paths_merge_driver` supports merging XML
 It keeps configurable "ours" XPath's or JSON-path's values during a merge.
 The primary use cases are merging Maven Pom files and NPM package.json files.
 
-In the following chapters it is described use cases
+In the following chapters it is described as use cases
 
 * how to configure the merge driver to keep XPath's and JSON-path's values,
 * how to register the merge driver in `.gitattributes` or `.git/info/attributes`,
@@ -43,12 +43,12 @@ Regarding this merge driver it means XPath or JSON-path.
 
 ## General
 
-In the following chapter some merge use cases are discussed.
+In this chapter some merge use cases are discussed.
 
 * The terms `SOURCE_REF` and `DEST_BRANCH` are from the `git merge` point of view.
   (`SOURCE_REF` is more general named REF, not BRANCH, because the source for a merge can be a branch or tag or commit.
 * The terms `base` (ancestor commit), `ours` and `theirs` are from the merge driver point of view.
-* The terms `Parent` and `Child` means branches, not commits.
+* The terms `Parent` and `Child` means branches (not commits).
 * The term `M` describes a merge commit.
 * Regarding a merge driver there are (maybe confusing) terms:
   The merge driver _registration_ in `.gitattributes` or `.git/info/attributes`,
@@ -268,11 +268,27 @@ The default is to parse a file as XML. For JSON add the `-t JSON`.
 The above command results in the repo's `.git/config` as:
 
     [merge "node-packagejson-jsonpaths-merge-driver"]
-        driver = keep_ours_paths_merge_driver.pyz -O %O -A %A -B %B -P %P -p version -t JSON
+        driver = keep_ours_paths_merge_driver.pyz -O %O -A %A -B %B -P %P -t JSON -p version
 
 # Keep paths by pattern
 
-Paths can be kept by patterns given as regular expressions, delimited by colon from the path.
+Paths can be kept by patterns given as regular expressions.
+Regular expressions are given as patterns delimited by colon from the path.
+
+Note, colon is a reserved character in XPath for namespaces.
+But for the first implementation of the merge driver this delimiter works for me.
+
+Simplifed pom.xml
+
+    <project>
+      ...
+      <properties>
+        <revision>1.0.0-SNAPSHOT</revision>
+        <app1.version>1.2.3</app1.version>    <!-- Keep -->
+        <app2.version>4.5.6</app1.version>    <!-- Keep -->
+        <app3.version>7.8.9</app1.version>
+      <properties>
+    </project>
 
 Example: Keep version-properties for app1 and app2 in pom.xml:
 
@@ -284,7 +300,7 @@ Example: Keep all version-properties in pom.xml:
 
 Example: Keep all dependencies of `@mycompany` in package.json:
 
-    -p 'dependencies:@mycompany/.+'
+    -p 'dependencies.*:@mycompany/.+'
 
 # Merge strategies
 
@@ -325,20 +341,39 @@ Without, default:
 
     `-p './some/path:some-pattern'`
 
+# About leaf- and non-leaf-nodes
+
+The merge driver works only on paths to leaf-nodes, not to objects/lists.
+This is because it works text-based, not structure-based.
+And non-leaf-nodes would have to be serialised back to text after processing,
+but that could re-format the file.
+If a path matches a non-leaf-node, the merge driver logs a warning.
+
+Example: The path `./properties` points to the node itself (which is an object), not to the children:
+
+    -p './properties:(app1|app2)[.]version'
+
+`WARNING: Base/Ours/Theirs file's XPath '/project/properties' is not a leaf-node. The merge driver works only on leaf-nodes. This path is ignored.`
+
+Adding a trailing slash fixes this:
+
+    -p './properties/:(app1|app2)[.]version'
+
 # About paths, hunks, structures, and formatting
 
-A merge driver in general is called by `git merge` in general if a 3-way-merge is needed,
-not only on conflicted files.
+A merge driver is called by `git merge` in general if a 3-way-merge is needed,
+not only on files with conflicted lines/hunks.
 Git provides the three file-versions ancestor (base), ours, and theirs to a merge driver.
 The merge driver can make something with that files, and signal Git back with exit code
-0 it has completed the merge, or with exit code >0 Git shall continue the merge with the three file-versions.
+0 it has completed the merge, or with exit code >0 Git shall continue the merge with the three file-versions
+possibly modified by the merge driver.
 
 The `keep_ours_paths_merge_driver` reads the paths given in `-p`, writes their values to "theirs",
 calls `git merge-file ours base theirs`, return that exit code back to Git, and let Git decide how to continue.
 The result regarding the matching lines to the paths in `-p` is "ours", because those are present to
-`git merge-file` in "theirs" and "ours", and so isn't a conflicted line or hunk.
+`git merge-file` in "theirs" _and_ "ours", and so isn't a conflicted line.
 
-`keep_ours_paths_merge_driver` processes the file-versions base/ourts/theirs as text, not as structures.
+`keep_ours_paths_merge_driver` processes the file-versions base/ours/theirs as text, not as structures.
 So it works only on less changed files.
 It will not work on files where the paths given in `-p` are restructured in the three file-versions.
 In that way it is as robust or weak as Git itself.
@@ -349,10 +384,10 @@ It would be possible to parse the XML- or JSON-files to a structure, prepare "th
 and write back the result as text using some formatter existing in Python.
 But the resulting outgoing format to "theirs" would probably not match the incoming format.
 To achieve proper formatting to not confusing Git's merge, an external formatter must be used to generate back the
-format of "theirs": The same formatter that was used to format the three file-versions before check-in.
+incoming format of "theirs": The same formatter that was used to format the three file-versions before check-in.
 
 I experimented with parsing. But unfortunately working with structures rather than text was not as robust as I expected.
-There would be an advantage at less restructuring. But heavy restructuring can also confuse parsers.
+There would be an advantage at less restructuring. But heavy restructuring can confuse parsers.
 
 # Create a fully self-contained executable zipapp
 
