@@ -68,6 +68,18 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
         set(base_paths_details.keys()), set(ours_paths_details.keys()), set(theirs_paths_details.keys()))
     logger.debug(f"common_paths to base/ours/theirs: {common_paths}")
     for common_path in common_paths:
+        leaf_warning = []
+        if not base_paths_details[common_path]['is_leaf']:
+            leaf_warning.append('Base')
+        if not ours_paths_details[common_path]['is_leaf']:
+            leaf_warning.append('Ours')
+        if not theirs_paths_details[common_path]['is_leaf']:
+            leaf_warning.append('Theirs')
+        if leaf_warning:
+            logger.warning(f"{'/'.join(leaf_warning)} file's XPath '{common_path}' is not a leaf-node."
+                           + " The merge driver works only on leaf-nodes. This path is ignored.")
+            continue
+
         base_value = base_paths_details[common_path]['value']
         ours_value = ours_paths_details[common_path]['value']
         theirs_value = theirs_paths_details[common_path]['value']
@@ -134,7 +146,8 @@ def _get_paths_details(xml_doc):
                 full_path = xml_doc_tree.getpath(tag_object)
                 tag_name = tag_object.tag
                 value = tag_object.text
+                is_leaf = True if len(tag_object) == 0 else False
                 paths_info.update({full_path: {
                     'merge_strategy': merge_strategy, 'tag_name': tag_name,
-                    'value': value, 'tag_object': tag_object}})
+                    'value': value, 'tag_object': tag_object, 'is_leaf': is_leaf}})
     return paths_info

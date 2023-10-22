@@ -58,6 +58,18 @@ def get_prepared_theirs_str(base_json_str: str, ours_json_str: str, theirs_json_
         set(base_paths_details.keys()), set(ours_paths_details.keys()), set(theirs_paths_details.keys()))
     logger.debug(f"common_paths to base/ours/theirs: {common_paths}")
     for common_path in common_paths:
+        leaf_warning = []
+        if not base_paths_details[common_path]['is_leaf']:
+            leaf_warning.append('Base')
+        if not ours_paths_details[common_path]['is_leaf']:
+            leaf_warning.append('Ours')
+        if not theirs_paths_details[common_path]['is_leaf']:
+            leaf_warning.append('Theirs')
+        if leaf_warning:
+            logger.warning(f"{'/'.join(leaf_warning)} file's XPath '{common_path}' is not a leaf-node."
+                           + " The merge driver works only on leaf-nodes. This path is ignored.")
+            continue
+
         base_value = base_paths_details[common_path]['value']
         ours_value = ours_paths_details[common_path]['value']
         theirs_value = theirs_paths_details[common_path]['value']
@@ -156,7 +168,8 @@ def _get_paths_details(json_dict):
                 # Type of jp_match.full_path is  <class 'jsonpath_ng.jsonpath.Child'>.
                 full_path = str(jp_match.full_path)
                 value = jp_match.value
+                is_leaf = type(jp_match.value) not in [dict, list]
                 paths_info.update({full_path: {
                     'merge_strategy': merge_strategy, 'attribute_name': attribute_name,
-                    'value': value, 'jsonpath_object': jp_match}})
+                    'value': value, 'jsonpath_object': jp_match, 'is_leaf': is_leaf}})
     return paths_info

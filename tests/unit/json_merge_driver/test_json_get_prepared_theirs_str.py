@@ -124,6 +124,32 @@ class TestJsonMergeDriverGetPreparedTheirsStr(unittest.TestCase):
         prepared_theirs_str = json_merge_driver.get_prepared_theirs_str(base_json_str, ours_json_str, theirs_json_str)
         self.assertEqual(prepared_theirs_str_expected, prepared_theirs_str)
 
+    def test_leaf_node(self):
+        """
+        This test provokes the leaf-node-warning and doesn't modify Theirs.
+        Because Theirs is not modified, all test-files are the same (01_base.xml).
+        """
+        testfiles_base_path = 'tests/unit/resources/'
+        with open(testfiles_base_path + '01_base.json') as f_base:
+            base_json_str = f_base.read()
+        with open(testfiles_base_path + '01_base.json') as f_ours:
+            ours_json_str = f_ours.read()
+        with open(testfiles_base_path + '01_base.json') as f_theirs:
+            theirs_json_str = f_theirs.read()
+
+        import keep_ours_paths_merge_driver.json_merge_driver as json_merge_driver
+        json_merge_driver.set_paths_and_patterns(
+            [{'merge_strategy': 'onconflict-ours', 'path': 'object_21_attr', 'pattern': None},
+             {'merge_strategy': 'onconflict-ours', 'path': 'list_31_attr', 'pattern': None}])
+
+        with open(testfiles_base_path + '01_base.json') as f_expected:
+            prepared_theirs_str_expected = f_expected.read()
+
+        from keep_ours_paths_merge_driver import config
+        config.configure_logger('DEBUG')
+        prepared_theirs_str = json_merge_driver.get_prepared_theirs_str(base_json_str, ours_json_str, theirs_json_str)
+        self.assertEqual(prepared_theirs_str_expected, prepared_theirs_str)
+
 
 if __name__ == '__main__':
     unittest.main()
