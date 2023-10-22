@@ -166,6 +166,7 @@ class TestXml(TestBase):
     def test_xpaths_given_on_command_line_using_merge_strategy_always_ours(self):
         """
         Set the merge-strategy "always-ours".
+        No line/hunk conflict.
         """
 
         self.git_init()

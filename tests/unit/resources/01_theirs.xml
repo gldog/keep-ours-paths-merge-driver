@@ -1,0 +1,18 @@
+<a1>
+    <b1 attr1="b1.1_attr">b1_value</b1>
+    <b2 attr1="b2.1_attr">b2_value_THEIRS</b2>
+    <b3 attr1="b3.1_attr">b3_value_THEIRS</b3>
+    <b4 attr1="b3.1_attr">
+        <c1 attr1="c1.1_attr">c1_value</c1>
+        <c2 attr1="c1.1_attr">c1_value_THEIRS</c2>
+        <c3 attr1="c1.1_attr">c1_value_THEIRS</c3>
+        <c4>
+            <d attr1="d[1].1_attr">d[1]_value</d>
+            <d attr1="d[2].2_attr">d[2]_value_THEIRS</d>
+            <d attr1="d[3].3_attr">d[3]_value_THEIRS</d>
+            <da attr1="da.1_attr">da_value</da>
+            <db attr1="db.1_attr">db_value_THEIRS</db>
+            <dc attr1="dc.1_attr">dc_value_THEIRS</dc>
+        </c4>
+    </b4>
+</a1>

@@ -66,7 +66,7 @@ def get_prepared_theirs_str(base_xml_str: str, ours_xml_str: str, theirs_xml_str
 
     common_paths = set.intersection(
         set(base_paths_details.keys()), set(ours_paths_details.keys()), set(theirs_paths_details.keys()))
-    logger.debug(f"common_paths: {common_paths}")
+    logger.debug(f"common_paths to base/ours/theirs: {common_paths}")
     for common_path in common_paths:
         base_value = base_paths_details[common_path]['value']
         ours_value = ours_paths_details[common_path]['value']
