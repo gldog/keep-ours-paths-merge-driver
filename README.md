@@ -4,7 +4,8 @@
 
 This Git custom merge driver `keep_ours_paths_merge_driver` supports merging XML- and JSON-files.
 It keeps configurable "ours" XPath's or JSON-path's values during a merge.
-The primary use cases are merging Maven Pom files and NPM package.json files.
+The primary use cases are merging Maven Pom files and NPM package.json files,
+but the merge driver is not limited to these.
 
 In the following chapters it is described as use cases
 

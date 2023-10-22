@@ -4,6 +4,8 @@ import re
 
 __version__ = '1.0.0.dev'
 
+import textwrap
+
 SCRIPT_NAME = 'keep_ours_paths_merge_driver'
 PATH_LIST_SEPARATOR_PATTERN = '[\\s,;]+'
 PATHS_TO_PATTERN_SEPARATOR = ':'
@@ -43,8 +45,16 @@ def configure_logger(loglevel):
 
 def init_argument_parser():
     parser = \
-        argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                description="TODO description")
+        argparse.ArgumentParser(
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            # -- 50 --------------- | ---------------------------------------------------------------- 100 -- #
+            description=textwrap.dedent(f"""\
+            This Git custom merge driver supports merging XML- and JSON-files. It keeps configurable "ours"
+            XPath's or JSON-path's values during a merge. The primary use cases are merging Maven Pom files
+            and NPM package.json files, but the merge driver is not limited to these.
+            
+            Version: {__version__}
+            More:    https://github.com/gldog/keep_ours_paths_merge_driver"""))
     # The '%' is a special character and has to be escaped by another '%'
     parser.add_argument('-O', '--base', required=True,
                         help="Base version (ancestor's version). Set by Git in %%O.")
