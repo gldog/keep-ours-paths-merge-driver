@@ -1,0 +1,63 @@
+{
+  "scalar_11_attr": "scalar_11_value",
+  "scalar_12_attr": "scalar_12_value__OURS",
+  "scalar_13_attr": "scalar_13_value__THEIRS",
+  "object_21_attr": {
+    "scalar_11_attr": "object_21.scalar_11_value",
+    "scalar_12_attr": "object_21.scalar_12_value__OURS",
+    "scalar_13_attr": "object_21.scalar_13_value__THEIRS",
+    "object_21_attr": {
+      "scalar_11_attr": "object_21.object_21.scalar_11_value",
+      "scalar_12_attr": "object_21.object_21.scalar_12_value__OURS",
+      "scalar_13_attr": "object_21.object_21.scalar_13_value__THEIRS"
+    },
+    "object_22_attr": {
+      "scalar_11_attr": "object_21.object_22.scalar_11_value",
+      "scalar_12_attr": "object_21.object_22.scalar_12_value",
+      "scalar_13_attr": "object_21.object_23.scalar_13_value"
+    },
+    "object_23_attr": {
+      "scalar_11_attr": "object_21.object_23.scalar_11_value",
+      "scalar_12_attr": "object_21.object_23.scalar_12_value",
+      "scalar_13_attr": "object_21.object_23.scalar_13_value"
+    },
+    "list_31_attr": [
+      "object_21.list_31.index-00.scalar_value",
+      "object_21.list_31.index-01.scalar_value__OURS",
+      {
+        "scalar_11_attr": "object_21.list_31.index-02.scalar_11_value__OURS"
+      }
+    ]
+  },
+  "object_22_attr": {
+    "scalar_11_attr": "object_22.scalar_11_value"
+  },
+  "object_23_attr": {
+    "scalar_11_attr": "object_23.scalar_11_value"
+  },
+  "list_31_attr": [
+    "list_31.index_00_scalar_value",
+    "list_31.index_01_scalar_value",
+    "list_31.index_02_scalar_value",
+    {
+      "scalar_11_attr": "list_31.index_03.scalar_11_value",
+      "scalar_12_attr": "list_31.index_03.scalar_12_value",
+      "scalar_13_attr": "list_31.index_03.scalar_13_value"
+    },
+    {
+      "scalar_11_attr": "list_31.index_04.scalar_11_value",
+      "scalar_12_attr": "list_31.index_04.scalar_12_value",
+      "scalar_13_attr": "list_31.index_04.scalar_13_value"
+    },
+    {
+      "scalar_11_attr": "list_31.index_05.scalar_11_value",
+      "scalar_12_attr": "list_31.index_05.scalar_12_value",
+      "scalar_13_attr": "list_31.index_05.scalar_13_value"
+    },
+    [
+      "list_31.index_06_entry.index_00_entry",
+      "list_31.index_06_entry.index_01_entry",
+      "list_31.index_06_entry.index_02_entry"
+    ]
+  ]
+}

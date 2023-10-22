@@ -1,8 +1,9 @@
 import json
 import logging
 import re
-from functools import reduce
-from operator import getitem
+
+# I chose jsonpath-ng because it generates full_path per path-match. This eases generating the control-doc a lot.
+import jsonpath_ng as jp
 
 from keep_ours_paths_merge_driver import config
 from keep_ours_paths_merge_driver import utils
@@ -55,7 +56,7 @@ def get_prepared_theirs_str(base_json_str: str, ours_json_str: str, theirs_json_
 
     common_paths = set.intersection(
         set(base_paths_details.keys()), set(ours_paths_details.keys()), set(theirs_paths_details.keys()))
-    logger.debug(f"common_paths: {common_paths}")
+    logger.debug(f"common_paths to base/ours/theirs: {common_paths}")
     for common_path in common_paths:
         base_value = base_paths_details[common_path]['value']
         ours_value = ours_paths_details[common_path]['value']
@@ -78,36 +79,56 @@ def get_prepared_theirs_str(base_json_str: str, ours_json_str: str, theirs_json_
                 f"; num_distinct_values: {num_distinct_values}")
 
         if prepare_theirs:
-            attribute_name = ours_paths_details[common_path]['attribute_name']
-            # I assume there is always one space between the colon and the value. Otherwise, the theirs-attribute
-            # won't be found.
-            theirs_attribute_to_search = f'"{attribute_name}": "{theirs_value}"'
-            ours_attribute_replacement = f'"{attribute_name}": "{ours_value}"'
-            logger.debug(f"theirs_attribute_to_search: {theirs_attribute_to_search}"
-                         + f"; ours_attribute_replacement: {ours_attribute_replacement}")
+            theirs_value_to_search = theirs_value
+            ours_value_replacement = ours_value
+            logger.debug(f"theirs_value_to_search: {theirs_value_to_search}"
+                         + f"; ours_value_replacement: {ours_value_replacement}")
+
+            #
+            # Using some special chars in jpath like slash '/', the following error occurs:
+            #
+            #       sonpath_ng.exceptions.JsonPathLexerError: Error on line 1, col 23: Unexpected character: /
+            #
+            # Example:
+            #   jpath = '$.dependencies.@mycompany/app1-version'
+            #
+            # To work around this, the path-part containing this char have to be quoted:
+            #   jpath = '$.dependencies."@mycompany/app1-version"'
+            #
+            # Quoting the whole path doesn't work. The part in question has to be quoted, or all parts of its own:
+            #   jpath = '$."dependencies"."@mycompany/app1-version"'
+            #
+            # But only the string-values, not the indexes!
+            # If a path contains an index, that index must not be quoted:
+            #   jpath = '$."dependencies".[1]'
+            #
+            # See also:
+            #   h2non/jsonpath-ng, https://github.com/h2non/jsonpath-ng/issues/127, issue #127:
+            #       json-path with slash results in: jsonpath_ng.exceptions.JsonPathLexerError: Error on line 1,
+            #       col 10: Unexpected character: / #127
+            #
+            def quote_jpath(jpath: str):
+                path_parts = jpath.split('.')
+                quoted_path_parts = []
+                for path_part in path_parts:
+                    if path_part.startswith('['):
+                        quoted_path_parts.append(path_part)
+                    else:
+                        quoted_path_parts.append('"' + path_part + '"')
+                return '.'.join(quoted_path_parts)
 
             # Set Ours value to Theirs.
-            *parts, last = common_path.split('.')
-            dict_temp = theirs_json_dict
-            for part in parts:
-                dict_temp = dict_temp.setdefault(part, {})
-            dict_temp[last] = ours_value
+            quoted_common_path = quote_jpath(common_path)
+            jsonpath_expr = jp.parse(quoted_common_path)
+            theirs_json_control_dict = jsonpath_expr.update(theirs_json_dict, ours_value)
 
-            #
-            # check_if_modified_json_str_is_equal_to_theirs_json_control_dict():
-            # We have the control-doc as XML-doc, and the XML to be compared against the control-doc as string.
-            # What possibilities of comparisons we have?
-            # The LXMLOutputChecker().checker.check_output() needs two strings.
-            # Comparison is also possible between to XML-docs with etree.tostring(xml_doc).
-            # But is there something taking one XML-doc and one XML-string? I don't know.
-            #
-            neutral_formatted_theirs_xml_str = json.dumps(theirs_json_dict)
+            neutral_formatted_theirs_json_str = json.dumps(theirs_json_control_dict)
 
             def check_if_modified_json_str_is_equal_to_theirs_json_control_dict(json_str: str) -> bool:
-                return neutral_formatted_theirs_xml_str == json.dumps(json.loads(json_str))
+                return neutral_formatted_theirs_json_str == json.dumps(json.loads(json_str))
 
-            theirs_json_str = utils.replace_token(theirs_json_str, theirs_attribute_to_search,
-                                                  ours_attribute_replacement,
+            theirs_json_str = utils.replace_token(theirs_json_str, theirs_value_to_search,
+                                                  ours_value_replacement,
                                                   check_if_modified_json_str_is_equal_to_theirs_json_control_dict)
 
     return theirs_json_str
@@ -115,40 +136,27 @@ def get_prepared_theirs_str(base_json_str: str, ours_json_str: str, theirs_json_
 
 def _get_paths_details(json_dict):
     paths_info = {}
-    # TODO: Assure objects_or_value are unique.
     for path_and_pattern in g_paths_and_patterns:
         merge_strategy = path_and_pattern['merge_strategy']
         jpath = path_and_pattern['path']
         attribute_pattern = path_and_pattern['pattern']
-        # Clean-up the jpath. If it starts with a dot, without clean-up the resulting list would have an empty first
-        # list-entry. The dollar is JSON-path-specific. To make it compatible with this "small-json-like-parser",
-        # remove the dollar-sign.
-        jpath = re.sub('^[$.]*', '', jpath)
-        # 'objects_or_value' can be a dict, a list, or a str.
-        objects_or_value = reduce(getitem, jpath.split('.'), json_dict)
-        logger.debug(f"_get_paths_details(); jpath: {jpath}"
-                     + f"; objects_or_value: type: {type(objects_or_value)}, len: {len(objects_or_value)}")
-        if isinstance(objects_or_value, str):
-            # 'objects_or_value' is the str-value of jpath. For easy further processing make it a dict.
-            # The attribute_name is the most right part of the dot-separated jpath.
-            attribute_name = jpath.split('.')[-1]
-            value = objects_or_value
-            objects_or_value = {attribute_name: value}
-        # TODO: Handle lists
-        # Now it is an object (in JSON terminology).
-        objects = objects_or_value
-        for attribute_name, value in objects.items():
-            # TODO: Expect value always as type str.
-            logger.debug(f"  attribute_name: {attribute_name}; value: type: {type(value)}, value: {value}")
-            if not attribute_pattern:
-                path_info = {
-                    jpath: {'merge_strategy': merge_strategy, 'attribute_name': attribute_name, 'value': value}}
-                paths_info.update(path_info)
-            elif re.match(attribute_pattern, str(attribute_name)):
-                # jpath += '.' + attribute_name
-                path_info = {
-                    f'{jpath}.{attribute_name}':
-                        {'merge_strategy': merge_strategy, 'attribute_name': attribute_name, 'value': value}
-                }
-                paths_info.update(path_info)
+        jsonpath_expr = jp.parse(jpath)
+        jp_matches = jsonpath_expr.find(json_dict)
+        logger.debug(f"_get_paths_details(); jpath: {jpath}; matching attributes count: {len(jp_matches)}")
+
+        if len(jp_matches) == 1 and type(jp_matches[0].value) == str and attribute_pattern:
+            logger.warning(f"Path '{jpath}' is a non-wildcard path, and a pattern is given."
+                           + " Patterns should only used on wildcard-paths"
+                           + " like '$.some-object.*' and '$.some-list[*]'.")
+
+        for jp_match in jp_matches:
+            # Type of jp_match.path is <class 'jsonpath_ng.jsonpath.Fields'>.
+            attribute_name = str(jp_match.path)
+            if not attribute_pattern or re.match(attribute_pattern, attribute_name):
+                # Type of jp_match.full_path is  <class 'jsonpath_ng.jsonpath.Child'>.
+                full_path = str(jp_match.full_path)
+                value = jp_match.value
+                paths_info.update({full_path: {
+                    'merge_strategy': merge_strategy, 'attribute_name': attribute_name,
+                    'value': value, 'jsonpath_object': jp_match}})
     return paths_info

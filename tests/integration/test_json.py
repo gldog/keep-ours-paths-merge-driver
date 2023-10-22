@@ -55,7 +55,7 @@ class TestJson(TestBase):
         self.exec_cmd(['git', 'checkout', '-b', 'ours-branch'])
         self.copy_file_to_existing_branch_and_commit('ours-branch', 'package_03_ours.json', 'package.json')
 
-        self.install_merge_driver("-t JSON -p 'version' 'dependencies:@mycompany/.+' -l DEBUG")
+        self.install_merge_driver("-t JSON -p 'version' 'dependencies.*:@mycompany/.+' -l DEBUG")
 
         env = os.environ.copy()
         env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
@@ -85,7 +85,7 @@ class TestJson(TestBase):
         self.copy_file_to_existing_branch_and_commit('ours-branch', 'package_03_ours.json', 'package.json')
 
         self.install_merge_driver(
-            "-t JSON -p 'onconflict-ours:version' 'onconflict-ours:dependencies:@mycompany/.+' -l DEBUG"
+            "-t JSON -p 'onconflict-ours:version' 'onconflict-ours:dependencies.*:@mycompany/.+' -l DEBUG"
         )
 
         env = os.environ.copy()
@@ -119,7 +119,7 @@ class TestJson(TestBase):
         self.install_merge_driver('-t JSON -l DEBUG')
 
         env = os.environ.copy()
-        env['KOP_MERGE_DRVIER_PATHSPATTERNS'] = 'version dependencies:@mycompany/.+'
+        env['KOP_MERGE_DRVIER_PATHSPATTERNS'] = 'version dependencies.*:@mycompany/.+'
         env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
         self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], env=env)
         self.exec_cmd(['git', 'status'])
@@ -150,7 +150,7 @@ class TestJson(TestBase):
         self.install_merge_driver('-t JSON -l DEBUG')
 
         env = os.environ.copy()
-        env['KOP_MERGE_DRVIER_PATHSPATTERNS'] = 'onconflict-ours:version onconflict-ours:dependencies:@mycompany/.+'
+        env['KOP_MERGE_DRVIER_PATHSPATTERNS'] = 'onconflict-ours:version onconflict-ours:dependencies.*:@mycompany/.+'
         env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
         self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], env=env)
         self.exec_cmd(['git', 'status'])
@@ -178,7 +178,7 @@ class TestJson(TestBase):
         self.copy_file_to_existing_branch_and_commit('ours-branch', 'package_13_ours.json', 'package.json')
 
         self.install_merge_driver(
-            "-t JSON -p 'always-ours:version' 'always-ours:dependencies:@mycompany/(some-app1|some-app2)' -l DEBUG"
+            "-t JSON -p 'always-ours:version' 'always-ours:dependencies.*:@mycompany/(some-app1|some-app2)' -l DEBUG"
         )
 
         env = os.environ.copy()
@@ -212,6 +212,7 @@ class TestJson(TestBase):
         self.install_merge_driver('-t JSON')
 
         env = os.environ.copy()
+        # This disables the merge dirver.
         env['KOP_MERGE_DRVIER_PATHSPATTERNS'] = ''
         env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
         self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], expected_exit_code=1, env=env)
