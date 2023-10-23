@@ -44,14 +44,14 @@ def configure_logger(loglevel):
 
 
 def init_argument_parser():
-    parser = \
-        argparse.ArgumentParser(
-            formatter_class=argparse.RawDescriptionHelpFormatter,
-            # -- 50 --------------- | ---------------------------------------------------------------- 100 -- #
-            description=textwrap.dedent(f"""\
-            This Git custom merge driver supports merging XML- and JSON-files. It keeps configurable "ours"
-            XPath's or JSON-path's values during a merge. The primary use cases are merging Maven Pom files
-            and NPM package.json files, but the merge driver is not limited to these.
+    parser = argparse.ArgumentParser(
+        # The RawTextHelpFormatter allows leves newlines. This allows formatted output of the --repos-data description.
+        formatter_class=lambda prog: argparse.RawTextHelpFormatter(prog, width=120),
+        # -- 50 --------------- | ---------------------------------------------------------------- 100 -- #
+        description=textwrap.dedent(f"""\
+        This Git custom merge driver supports merging XML- and JSON-files. It keeps configurable "ours"
+        XPath's or JSON-path's values during a merge. The primary use cases are merging Maven Pom files and
+        NPM package.json files, but the merge driver is not limited to these.
             
             Version: {__version__}
             More:    https://github.com/gldog/keep_ours_paths_merge_driver"""))
@@ -64,25 +64,29 @@ def init_argument_parser():
                         help="Theirs version (other branches' version). Set by Git in %%B")
     parser.add_argument('-P', '--path', default='',
                         help="The pathname in which the merged result will be stored. Set by Git in %%P.")
+    #   |---------------------------------------------------------------- 100 -- #
     parser.add_argument('-p', '--pathspatterns', nargs='+', metavar='MERGE-STRATEGY:PATH:PATTERN',
-                        help=
-                        f"List of paths with merge-strategy and and path-pattern" +
-                        f", separated by '{PATHS_TO_PATTERN_SEPARATOR}'." +
-                        " The path is mandatory, the merge-strategy and path-pattern are optional." +
-                        f" The merge-strategy is one of {MERGE_STRATEGIES}." +
-                        f" Defaults to {MERGE_STRATEGY_DEFAULT}.")
+                        help=textwrap.dedent(f"""\
+        List of paths with merge-strategy and and path-pattern, separated by '{PATHS_TO_PATTERN_SEPARATOR}'.
+        The path is mandatory, the merge-strategy and path-pattern are optional. The
+        merge-strategy is one of {MERGE_STRATEGIES} (defaults to
+        '{MERGE_STRATEGY_DEFAULT}'). If the default separator '{PATHS_TO_PATTERN_SEPARATOR}' shall be used in the path
+        itself, a different separator can be defined in parameter -s/--separator."""))
+    parser.add_argument('-s', '--separator', default=PATHS_TO_PATTERN_SEPARATOR,
+                        help="Used to separate the parts MERGE-STRATEGY, PATH, PATTERN" +
+                             f" (defaults to '{PATHS_TO_PATTERN_SEPARATOR}')")
     parser.add_argument('-o', '--stdout', action='store_true', default=False,
                         help="Print the prepared file 'theirs' to stdout.")
     parser.add_argument('-t', '--filetype', choices=FILE_TYPES, default='XML',
                         help=f"The file type to merge, one of {FILE_TYPES}. Defaults to {FILE_TYPE_DEFAULT}.")
-    parser.add_argument('--version', action='version', version=f'%(prog)s {__version__}')
+    parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {__version__}')
     parser.add_argument('-l', '--loglevel', choices=LOG_LEVELS, default=DEFAULT_LOGLEVEL,
                         help=f"Log-level: {LOG_LEVELS}. Defaults to {DEFAULT_LOGLEVEL}.")
 
     return parser
 
 
-def get_paths_and_patterns(from_environment_as_str, from_cl_args_as_list):
+def get_paths_and_patterns(from_environment_as_str, from_cl_args_as_list, separator=PATHS_TO_PATTERN_SEPARATOR):
     # None vs. emtpy string '': Allow switching off defaults or values set by command line by an empty
     # configuration set by environment variable.
     if from_environment_as_str is not None:
@@ -96,17 +100,17 @@ def get_paths_and_patterns(from_environment_as_str, from_cl_args_as_list):
 
     all_paths_and_patterns = []
     for path_and_pattern in path_and_pattern_list:
-        merge_strategy, path, pattern = split_into_path_and_pattern(path_and_pattern)
+        merge_strategy, path, pattern = split_into_path_and_pattern(path_and_pattern, separator)
         all_paths_and_patterns.append({'merge_strategy': merge_strategy, 'path': path, 'pattern': pattern})
 
     return all_paths_and_patterns
 
 
-def split_into_path_and_pattern(path_and_pattern):
+def split_into_path_and_pattern(path_and_pattern, separator=PATHS_TO_PATTERN_SEPARATOR):
     if not path_and_pattern:
         return MERGE_STRATEGY_DEFAULT, '', ''
 
-    parts = re.split(PATHS_TO_PATTERN_SEPARATOR, path_and_pattern)
+    parts = re.split(separator, path_and_pattern)
     # Remove empty parts. E.g. the value ":a-path" results in ['', 'a-part']; remove the ''.
     parts = [part for part in parts if part]
     if not parts:
@@ -125,6 +129,7 @@ def split_into_path_and_pattern(path_and_pattern):
     elif len(parts) == 2:
         # Because there are two parts it is unclear if they are meant as merge-strategy:path or path:pattern.
         # But the merge-strategies are known. Detect if parts[0] is a merge-strategy.
+        # Drawback: No check for existing merge-strategy possible.
         if parts[0] in MERGE_STRATEGIES:
             merge_strategy = parts[0].strip()
             path = parts[1].strip()
@@ -132,6 +137,7 @@ def split_into_path_and_pattern(path_and_pattern):
             path = parts[0].strip()
             pattern = parts[1].strip()
     else:
+        # Number of parts is 3.
         merge_strategy = parts[0].strip()
         if merge_strategy not in MERGE_STRATEGIES:
             raise ValueError(value_exception_msg)

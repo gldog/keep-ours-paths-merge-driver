@@ -53,7 +53,8 @@ def main():
         logger.debug(f"KOP_MERGE_DRVIER_PATHSPATTERNS: {paths_from_environment_as_str}")
         # Get path_and_patterns either from environment variable or command-line parameter. Environment variable takes
         # precedence.
-        paths_and_patterns = config.get_paths_and_patterns(paths_from_environment_as_str, paths_from_cl_args_as_list)
+        paths_and_patterns = config.get_paths_and_patterns(
+            paths_from_environment_as_str, paths_from_cl_args_as_list, cl_args.separator)
         logger.info(f"paths_and_patterns: {paths_and_patterns}")
         if paths_and_patterns:
             # This is the tiny merge-driver-factory.

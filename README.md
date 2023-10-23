@@ -18,10 +18,17 @@ Regarding this merge driver it means XPath or JSON-path.
 
 # Command line reference
 
-    $ ./keep_ours_paths_merge_driver.pyz -h
-     usage: __main__.py [-h] -O BASE -A OURS -B THEIRS [-P PATH] [-p MERGE-STRATEGY:PATH:PATTERN [MERGE-STRATEGY:PATH:PATTERN ...]] [-o] [-t {XML,JSON}] [--version] [-l {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+    $ python -m keep_ours_paths_merge_driver -h
+    usage: __main__.py [-h] -O BASE -A OURS -B THEIRS [-P PATH]
+                       [-p MERGE-STRATEGY:PATH:PATTERN [MERGE-STRATEGY:PATH:PATTERN ...]] [-s SEPARATOR] [-o]
+                       [-t {XML,JSON}] [-v] [-l {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
     
-    TODO description
+    This Git custom merge driver supports merging XML- and JSON-files. It keeps configurable "ours"
+    XPath's or JSON-path's values during a merge. The primary use cases are merging Maven Pom files and
+    NPM package.json files, but the merge driver is not limited to these.
+    
+        Version: 1.0.0.dev
+        More:    https://github.com/gldog/keep_ours_paths_merge_driver
     
     optional arguments:
       -h, --help            show this help message and exit
@@ -31,12 +38,17 @@ Regarding this merge driver it means XPath or JSON-path.
                             Theirs version (other branches' version). Set by Git in %B
       -P PATH, --path PATH  The pathname in which the merged result will be stored. Set by Git in %P.
       -p MERGE-STRATEGY:PATH:PATTERN [MERGE-STRATEGY:PATH:PATTERN ...], --pathspatterns MERGE-STRATEGY:PATH:PATTERN [MERGE-STRATEGY:PATH:PATTERN ...]
-                            List of paths with merge-strategy and and path-pattern, separated by ':'. The path is mandatory, the merge-strategy and path-pattern are optional. The merge-strategy is one of
-                            ['onconflict-ours', 'always-ours']. Defaults to onconflict-ours.
+                            List of paths with merge-strategy and and path-pattern, separated by ':'.
+                            The path is mandatory, the merge-strategy and path-pattern are optional. The
+                            merge-strategy is one of ['onconflict-ours', 'always-ours'] (defaults to
+                            'onconflict-ours'). If the default separator ':' shall be used in the path
+                            itself, a different separator can be defined in parameter -s/--separator.
+      -s SEPARATOR, --separator SEPARATOR
+                            Used to separate the parts MERGE-STRATEGY, PATH, PATTERN (defaults to ':')
       -o, --stdout          Print the prepared file 'theirs' to stdout.
       -t {XML,JSON}, --filetype {XML,JSON}
                             The file type to merge, one of ['XML', 'JSON']. Defaults to XML.
-      --version             show program's version number and exit
+      -v, --version         show program's version number and exit
       -l {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                             Log-level: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']. Defaults to INFO.
 
@@ -166,7 +178,7 @@ But from the point of the Parent branch, its branch version shall be kept _alway
 E.g. a release-version must not be overridden nor provoke a merge conflict by a temporary version used on the
 Child branch.
 Therefore, the merge driver provides the merge-strategy `always-ours`.
-The merge-strategy is part of `-p`'s option, delimited by colon:
+The merge-strategy is part of `-p` option, separated by colon (or the value given in `-s/--separator`):
 
     -p 'always-ours:./version' 'always-ours:./parent/version' 'always-ours:./properties/revision'
 
@@ -274,10 +286,7 @@ The above command results in the repo's `.git/config` as:
 # Keep paths by pattern
 
 Paths can be kept by patterns given as regular expressions.
-Regular expressions are given as patterns delimited by colon from the path.
-
-Note, colon is a reserved character in XPath for namespaces.
-But for the first implementation of the merge driver this delimiter works for me.
+Regular expressions are given as patterns separated by colon (or the value given in `-s/--separator`).
 
 Simplifed pom.xml
 
@@ -306,7 +315,8 @@ Example: Keep all dependencies of `@mycompany` in package.json:
 # Merge strategies
 
 The merge driver has the two path merge strategies `onconflict-ours` (default) and `always-ours`.
-A strategy is given in path-parameter `-p` in addition to the path separated by colon.
+A strategy is given in path-parameter `-p` in addition to the path separated by colon (or the value given in
+`-s/--separator`).
 
 About the term "path": In the Git docs it means a file-path.
 Regarding this merge driver it means XPath or JSON-path.

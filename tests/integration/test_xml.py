@@ -252,6 +252,39 @@ class TestXml(TestBase):
         #    open(pathlib.Path(self.resources_path, 'pom_01_expected_conflicted.xml')).read(), open('pom.xml').read())
         self.assertTrue(filecmp.cmp(pathlib.Path(self.resources_path, 'pom_01_expected_conflicted.xml'), 'pom.xml'))
 
+    def test_separator(self):
+        """
+        The values of parameter -p are the paths, optionally with the merge-strategy and the pattern.
+        The default separtor between them is the colon ':'. Example:
+            -p ''./properties/:(some-app1|some-app2)[.]version'
+        But the colon is also used in XPath, it is the separator between a namespace and a tag.
+        If the colon shall be used in XPath, -s gives an alternative separator.
+        """
+
+        self.git_init()
+
+        self.exec_cmd(['git', 'checkout', self.main_branch_name])
+        self.copy_file_to_existing_branch_and_commit(self.main_branch_name, 'pom_03_base.xml', 'pom.xml')
+
+        self.exec_cmd(['git', 'checkout', self.main_branch_name])
+        self.exec_cmd(['git', 'checkout', '-b', 'theirs-branch'])
+        self.copy_file_to_existing_branch_and_commit('theirs-branch', 'pom_03_theirs.xml', 'pom.xml')
+
+        self.exec_cmd(['git', 'checkout', self.main_branch_name])
+        self.exec_cmd(['git', 'checkout', '-b', 'ours-branch'])
+        self.copy_file_to_existing_branch_and_commit('ours-branch', 'pom_03_ours.xml', 'pom.xml')
+
+        self.install_merge_driver("-s '###' -p './version' './properties/###(some-app1|some-app2)[.]version'")
+
+        env = os.environ.copy()
+        env['SHIV_ROOT'] = str(pathlib.Path(self.abs_project_root_path, 'target', 'shiv'))
+        self.exec_cmd(['git', 'merge', '--no-ff', '--no-edit', 'theirs-branch'], env=env)
+
+        self.exec_cmd(['git', 'status'])
+        # self.assertEqual(
+        #    open(pathlib.Path(self.resources_path, 'pom_03_expected_merged.xml')).read(), open('pom.xml').read())
+        self.assertTrue(filecmp.cmp(pathlib.Path(self.resources_path, 'pom_03_expected_merged.xml'), 'pom.xml'))
+
 
 if __name__ == '__main__':
     unittest.main()

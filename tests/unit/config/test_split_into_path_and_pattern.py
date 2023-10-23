@@ -65,6 +65,15 @@ class TestConfigSplitIntoPathAndPattern(unittest.TestCase):
             path_and_pattern_str = 'invalid-merge-strategy:the-path:the-pattern'
             config.split_into_path_and_pattern(path_and_pattern_str)
 
+    def test_split_into_path_and_pattern_using_explicite_separator(self):
+        path_and_pattern_str = 'onconflict-ours###the-path###the-pattern'
+        separator = '###'
+        merge_strategy, path, pattern = config.split_into_path_and_pattern(
+            path_and_pattern_str, separator)
+        self.assertEqual('onconflict-ours', merge_strategy)
+        self.assertEqual('the-path', path)
+        self.assertEqual('the-pattern', pattern)
+
 
 if __name__ == '__main__':
     unittest.main()
