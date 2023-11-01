@@ -110,7 +110,7 @@ class TestBase(unittest.TestCase):
 
         :param options: E.g. '-p ./version'
         """
-        merge_driver_params = '-O %O -A %A -B %B'
+        merge_driver_params = '-O %O -A %A -B %B -P ./%P'
         if options:
             merge_driver_params += f' {options}'
         merge_driver_path_with_parameters = \

@@ -10,7 +10,7 @@
     <groupId>com.dummy</groupId>
     <artifactId>java-web-project</artifactId>
     <packaging>war</packaging>
-    <version>NEW_VALUE_ON_THEIRS</version>
+    <version>ORIGINAL_VALUE</version>
     <name>java-web-project Maven Webapp</name>
     <url>http://maven.apache.org</url>
     <properties>
@@ -27,6 +27,9 @@
 
         <!-- Help git merge separating conflicted chunks. Separate this line from others. -->
         <jetty.maven.plugin-version>ORIGINAL_VALUE</jetty.maven.plugin-version>
+
+        <ci-merge-driver-trigger>This line is to trigger the Git merge driver. Do not touch! (12345)
+        </ci-merge-driver-trigger>
     </properties>
     <dependencies>
         <!-- This is a dependency which version is set by a property. -->

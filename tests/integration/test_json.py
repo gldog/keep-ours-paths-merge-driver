@@ -193,7 +193,7 @@ class TestJson(TestBase):
 
     def test_jpaths_empty_list_from_env_variable_disables_merge_driver(self):
         """
-        Setting KOP_MERGE_DRVIER_PATHSPATTERNS to '' effectively deactivates the merge-driver. Not really a use case.
+        Setting KOP_MERGE_DRVIER_PATHSPATTERNS to '' effectively deactivates the merge-driver.
         """
 
         self.git_init(file_type='JSON')

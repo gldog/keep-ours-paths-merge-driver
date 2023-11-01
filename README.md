@@ -145,16 +145,24 @@ A)
 The Parent branch hasn't a new version yet since the Child branch was created, is has still version `v1`.
 No merge conflict occurs on the pom.xml `/project/version` XPath on `M`.
 
-WARNING: The Child branch's version `v3-SN` wins on `M` not using the merge driver!
+* WARNING 1: The Child branch's version `v3-SN` wins on `M` not using the merge driver!
+* WARNING 2: **Git calls merge drivers only in case of a 3-way-merge.**
+  If no change has been made on the file on Parent, without any further action Git won't call the
+  merge driver, and Parent wins anyway.  
+  There are examples for "touch file on dest-branch if unchanged" in tests of
+  [gldog/keep_ours_paths_merge_driver](https://github.com/gldog/keep_ours_paths_merge_driver/blob/master/tests/integration/test_xml.py)
+  and a script
+  in [gldog/concurrent_git_merge](https://github.com/gldog/concurrent_git_merge/blob/master/example-scripts/my/clone_repos_and_install_mergedrivers.sh)
+  .
 
-                           M: v3-SN without merge driver
-      v1   (base)          M: v2 with merge driver "always-ours"
-    --*------*-------------------*------------------------  Parent, (ours), DEST_BRANCH
-              \                  ↑
-               \           merge |
-                \                |
-                 *----------------------------------------  Child, (theirs), SOURCE_REF
-               v3-SN
+                             M: v3-SN without merge driver
+        v1   (base)          M: v2 with merge driver "always-ours"
+      --*------*-------------------*------------------------  Parent, (ours), DEST_BRANCH
+                \                  ↑
+                 \           merge |
+                  \                |
+                   *----------------------------------------  Child, (theirs), SOURCE_REF
+                 v3-SN
 
 B)
 
@@ -364,7 +372,8 @@ Example: The path `./properties` points to the node itself (which is an object),
 
     -p './properties:(app1|app2)[.]version'
 
-`WARNING: Base/Ours/Theirs file's XPath '/project/properties' is not a leaf-node. The merge driver works only on leaf-nodes. This path is ignored.`
+WARNING: Base/Ours/Theirs file's XPath '/project/properties' is not a leaf-node. The merge driver works only on
+leaf-nodes. This path is ignored.
 
 Adding a trailing slash fixes this:
 

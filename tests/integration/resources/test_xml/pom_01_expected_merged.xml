@@ -21,7 +21,11 @@
         <spring.version>ORIGINAL_VALUE</spring.version>
         <some-app1.version>ORIGINAL_VALUE</some-app1.version>
         <some-app2.version>ORIGINAL_VALUE</some-app2.version>
+
+        <!-- Help git merge separating conflicted chunks. Separate this line from others. -->
         <some-app3.version>ORIGINAL_VALUE</some-app3.version>
+
+        <!-- Help git merge separating conflicted chunks. Separate this line from others. -->
         <jetty.maven.plugin-version>ORIGINAL_VALUE</jetty.maven.plugin-version>
     </properties>
     <dependencies>
