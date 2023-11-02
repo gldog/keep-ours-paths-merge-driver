@@ -148,7 +148,8 @@ No merge conflict occurs on the pom.xml `/project/version` XPath on `M`.
 * WARNING 1: The Child branch's version `v3-SN` wins on `M` not using the merge driver!
 * WARNING 2: **Git calls merge drivers only in case of a 3-way-merge.**
   If no change has been made on the file on Parent, without any further action Git won't call the
-  merge driver, and Parent wins anyway.  
+  merge driver, but will fast-forward Child's file to Parent. So Child wins, what is not expected 
+  using "always-ours" on Parent.
   There are examples for "touch file on dest-branch if unchanged" in tests of
   [gldog/keep_ours_paths_merge_driver](https://github.com/gldog/keep_ours_paths_merge_driver/blob/master/tests/integration/test_xml.py)
   and a script
