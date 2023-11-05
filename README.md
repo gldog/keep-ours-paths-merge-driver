@@ -410,40 +410,60 @@ incoming format of "theirs": The same formatter that was used to format the thre
 I experimented with parsing. But unfortunately working with structures rather than text was not as robust as I expected.
 There would be an advantage at less restructuring. But heavy restructuring can confuse parsers.
 
-# Create a fully self-contained executable zipapp
+# Create a fully self-contained executable zipapp with shiv
 
 ## Create the zipapp
 
 You can create a fully self-contained executable zipapp `keep_ours_paths_merge_driver.pyz` with all dependencies bundled
-into one file.
-This allows simple distribution without letting the users install Python modules.
-(Installing modules could be a hassle in companies without direct internet access.)
+into it.
+This allows simple distribution without letting the users install dependencies.
 The zipapp contains the platform-dependent library lxml.
 Therefore, a zipapp for each platform has to be built.
 
-The steps are the same for each platform, but the commands differ slightly:
+The steps are the same for each platform, but the commands differ slightly.
 
-* Create a Python virtual environment.
-* Activate the virtual environment.
-* Install dependencies.
-* Create the zipapp.
-
-In and for Linux or macOS:
+Create zipapp in and for Linux or macOS:
 
     python3 -m venv venv
     source venv/bin/activate
     pip install -r requirements.txt
     shiv -c keep_ours_paths_merge_driver -o keep_ours_paths_merge_driver.pyz .
 
-In and for Gitbash (Windows)
+Create zipapp in and for Windows Gitbash
 
     python -m venv venv
     source venv/Scripts/activate
-    python -m pip install -r requirements.txt
-    # *** Use your path to Python3/python ***
-    python -m shiv -c keep_ours_paths_merge_driver -p /c/Programme/Python3/python -o keep_ours_paths_merge_driver.pyz .
+    pip install -r requirements.txt
+    shiv -c keep_ours_paths_merge_driver -p python -o keep_ours_paths_merge_driver.pyz .
 
-In and for CMD (Windows)
+Without `-p python`, shiv creates the Shebang `#!/usr/bin/env python3`.
+But the Python binary shipped with the Windows Python installer is just `python.exe`, not `python3.exe`.
+The zipapp won't start.
+
+Setting `-p '/usr/bin/env python'` (python without "3") does weird things issued in
+[shiv generates invalid shebang line in git bash (windows/mingw) #168](https://github.com/linkedin/shiv/issues/168),
+(still in shiv version 1.0.4).
+
+If you experiment with `-p` and you see `cannot execute: required file not found`, have a look into the zipapp at the
+first line to see what shiv has created as Shebang:
+
+    # Test:
+    $ ./keep_ours_path_merge_driver.pyz
+    bash: ./keep_ours_path_merge_driver.pyz: cannot execute: required file not found
+    # Look into the zipapp:
+    head -1 keep_ours_path_merge_driver.pyz
+    ...
+
+Interestingly, Windows CMD creates `-p '/usr/bin/env python'` as expected:
+
+    (venv) D:\prj\keep_ours_path_merge_driver>shiv -c src -p "/usr/bin/env python" -o keep_ours_path_merge_driver.pyz .
+    ...
+    (venv) D:\prj\keep_ours_paths_merge_driver>head -1 keep_ours_paths_merge_driver
+    #!/usr/bin/env python
+
+And that is executable in Gitbash!
+
+Create zipapp in and for CMD (Windows)
 
     python -m venv venv
     venv\Scripts\activate.bat
